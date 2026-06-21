@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard M&E — GG#2681765 Agua &amp; Paz Bolivia | U4C · QBL · Rotary</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap');
+
+:root {
+  --v:      #2D3A8C;
+  --v-md:   #4C5FD5;
+  --v-lt:   #EDEFFE;
+  --v-dk:   #1A2060;
+  --az:     #C45E3E;
+  --az-lt:  #FAEEE9;
+  --am:     #7B5EA7;
+  --am-lt:  #F0EBF8;
+  --ro:     #B03060;
+  --ro-lt:  #FCEEF4;
+  --pu:     #2E7D6B;
+  --pu-lt:  #E3F4F1;
+  --ink:    #0E110E;
+  --ink2:   #3A3F39;
+  --ink3:   #6B716B;
+  --ink4:   #9BA09B;
+  --bdr:    #E2E3EC;
+  --bg:     #F4F4F7;
+  --surf:   #FFFFFF;
+  --r:      10px;
+  --sh:     0 1px 3px rgba(0,0,0,.06), 0 4px 14px rgba(0,0,0,.04);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sb{
+  position:fixed;left:0;top:0;bottom:0;width:210px;
+  background:var(--v-dk);display:flex;flex-direction:column;
+  z-index:200;overflow-y:auto;
+}
+.sb-logo{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sb-logo .eyebrow{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px}
+.sb-logo h1{font-family:'DM Serif Display',serif;font-size:17px;color:#fff;line-height:1.25;font-weight:700}
+.sb-logo .orgs{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.org-chip{font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.65)}
+
+.sb-section{padding:16px 12px 4px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.3)}
+.sb-link{
+  display:flex;align-items:center;gap:9px;padding:8px 14px;margin:1px 6px;
+  border-radius:7px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.65);
+  text-decoration:none;transition:.15s;
+}
+.sb-link:hover{background:rgba(255,255,255,.09);color:#fff}
+.sb-link.active{background:rgba(255,255,255,.16);color:#fff;font-weight:500}
+.sb-link svg{width:14px;height:14px;flex-shrink:0;opacity:.8}
+
+
+/* ── MAIN ── */
+.main{margin-left:210px;padding:28px 28px 48px;min-height:100vh}
+.page{display:none}
+.page.active{display:block}
+
+/* ── PAGE HEADER ── */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;gap:12px;flex-wrap:wrap}
+.ph h2{font-family:'DM Serif Display',serif;font-size:24px;font-weight:700;color:var(--ink)}
+.ph p{font-size:12px;color:var(--ink3);margin-top:3px}
+.ph-actions{display:flex;gap:8px;align-items:center}
+.btn{padding:7px 14px;border-radius:7px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;border:1px solid var(--bdr);background:var(--surf);color:var(--ink2);transition:.15s}
+.btn:hover{border-color:var(--v-md);color:var(--v)}
+.btn-p{background:var(--v);color:#fff;border-color:var(--v)}
+.btn-p:hover{background:var(--v-md);color:#fff;border-color:var(--v-md)}
+
+/* ── METRICS ── */
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.mc{background:var(--surf);border-radius:var(--r);border:1px solid var(--bdr);padding:16px;box-shadow:var(--sh)}
+.mc .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--ink4);margin-bottom:8px}
+.mc .val{font-size:26px;font-weight:600;line-height:1;margin-bottom:4px;font-family:'DM Serif Display',serif}
+.mc .sub{font-size:11px;color:var(--ink3)}
+.mc.v .val{color:var(--v)}
+.mc.az .val{color:var(--az)}
+.mc.am .val{color:var(--am)}
+.mc.ro .val{color:var(--ro)}
+.mc.pu .val{color:var(--pu)}
+.pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;margin-top:6px;font-weight:500}
+.p-v{background:var(--v-lt);color:var(--v)}
+.p-az{background:var(--az-lt);color:var(--az)}
+.p-am{background:var(--am-lt);color:var(--am)}
+.p-ro{background:var(--ro-lt);color:var(--ro)}
+.p-pu{background:var(--pu-lt);color:var(--pu)}
+.p-gray{background:#EFEFED;color:#555}
+
+/* ── GRIDS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.g6535{display:grid;grid-template-columns:1.7fr 1fr;gap:16px;margin-bottom:16px}
+
+/* ── CARD ── */
+.card{background:var(--surf);border-radius:var(--r);border:1px solid var(--bdr);box-shadow:var(--sh);overflow:hidden}
+.ch{padding:14px 18px 12px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.ch h3{font-size:13px;font-weight:600;color:var(--ink)}
+.ch p{font-size:11px;color:var(--ink3);margin-top:2px}
+.cb{padding:16px 18px}
+
+/* ── PROGRESS ── */
+.pr-item{margin-bottom:14px}
+.pr-item:last-child{margin-bottom:0}
+.pr-lbl{display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px}
+.pr-lbl strong{font-weight:500}
+.pr-track{height:7px;background:#EEF0EC;border-radius:4px;overflow:hidden}
+.pr-bar{height:100%;border-radius:4px;transition:width .6s ease}
+
+/* ── TABLE ── */
+.dt{width:100%;border-collapse:collapse;font-size:12px}
+.dt th{text-align:left;padding:9px 14px;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink4);border-bottom:1px solid var(--bdr);font-weight:500;background:var(--bg)}
+.dt td{padding:10px 14px;border-bottom:1px solid #F5F6F3;vertical-align:middle}
+.dt tr:last-child td{border-bottom:none}
+.dt tr:hover td{background:#FAFBF8}
+.nm{font-weight:500}
+.id-c{font-size:11px;color:var(--ink3);font-family:monospace}
+
+/* ── STATUS ── */
+.st{display:flex;align-items:center;gap:5px;font-size:11px}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dg{background:var(--v-md)}.da{background:#EF9F27}.dr{background:#E24B4A}.dgr{background:#B4B2A9}
+
+/* ── ALERT ── */
+.alert{display:flex;gap:10px;padding:10px 14px;border-radius:8px;border:1px solid;margin-bottom:10px;font-size:12px;align-items:flex-start}
+.alert svg{width:14px;height:14px;flex-shrink:0;margin-top:1px}
+.ai{background:var(--az-lt);border-color:#C5C9F0;color:#1A2060}
+.aw{background:var(--am-lt);border-color:#FAC775;color:#633806}
+.as{background:var(--v-lt);border-color:#B3BAF0;color:#1A2060}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}
+.tb{padding:5px 14px;border-radius:6px;font-size:11px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;border:1px solid var(--bdr);background:var(--surf);color:var(--ink3);transition:.15s}
+.tb:hover{border-color:var(--v-md);color:var(--v)}
+.tb.active{background:var(--v);color:#fff;border-color:var(--v)}
+.tp{display:none}
+.tp.active{display:block}
+
+/* ── SCHEMA TABLE ── */
+.st-tbl{width:100%;border-collapse:collapse;font-size:11px}
+.st-tbl th{text-align:left;padding:7px 12px;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink4);border-bottom:1px solid var(--bdr);background:var(--bg);font-weight:500}
+.st-tbl td{padding:8px 12px;border-bottom:1px solid #F5F6F3}
+.st-tbl td:first-child{font-weight:500}
+.st-tbl td:nth-child(2){color:var(--az);font-family:monospace;font-size:10px}
+.st-tbl td:nth-child(3){color:var(--ink2)}
+
+/* ── OBJECTIVE CARD ── */
+.obj-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.oc{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;border-left:3px solid var(--v-md);box-shadow:var(--sh)}
+.oc .on{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--v);margin-bottom:5px;font-weight:600}
+.oc h4{font-size:13px;font-weight:600;margin-bottom:5px}
+.oc p{font-size:11px;color:var(--ink2);line-height:1.55}
+.oc .tags{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap}
+
+/* ── SURVEY MATRIX ── */
+.sm-tbl{width:100%;border-collapse:collapse;font-size:11px}
+.sm-tbl th{padding:8px 12px;background:var(--bg);font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink4);border-bottom:1px solid var(--bdr);text-align:center}
+.sm-tbl th:first-child{text-align:left}
+.sm-tbl td{padding:9px 12px;border-bottom:1px solid #F5F6F3;text-align:center;vertical-align:middle}
+.sm-tbl td:first-child{text-align:left;font-weight:500}
+.chk{color:var(--v-md);font-size:13px}
+.dsh{color:var(--bdr);font-size:13px}
+
+/* ── COMMUNITY TAG ── */
+.comm{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500}
+.cc{background:var(--az-lt);color:var(--az)}
+.cb2{background:var(--pu-lt);color:var(--pu)}
+
+/* ── TIMELINE ── */
+.tl{padding:4px 0}
+.tl-i{display:flex;gap:12px;margin-bottom:14px}
+.tl-i:last-child{margin-bottom:0}
+.tl-dc{display:flex;flex-direction:column;align-items:center}
+.tl-d{width:9px;height:9px;border-radius:50%;margin-top:3px;flex-shrink:0}
+.tl-ln{flex:1;width:1px;background:var(--bdr);margin-top:4px}
+.tl-ti{font-size:12px;font-weight:500;margin-bottom:2px}
+.tl-su{font-size:11px;color:var(--ink3)}
+
+/* ── QLINK ── */
+.qr-box{background:var(--v-lt);border:1px solid #B3BAF0;border-radius:var(--r);padding:16px 18px}
+.qr-box h4{font-size:13px;font-weight:600;color:var(--v);margin-bottom:6px}
+.qr-box p{font-size:12px;color:var(--ink2);line-height:1.55;margin-bottom:12px}
+.qr-url{font-family:monospace;font-size:12px;background:rgba(15,110,86,.08);padding:8px 12px;border-radius:6px;color:var(--v-dk);word-break:break-all;margin-bottom:10px}
+.copy-btn{padding:7px 14px;background:var(--v);color:#fff;border:none;border-radius:6px;font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;font-weight:500}
+
+/* CHART WRAP */
+.cw{position:relative}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-thumb{background:#D3D1C7;border-radius:3px}
+
+/* RESPONSIVE */
+@media(max-width:1100px){.metrics{grid-template-columns:repeat(3,1fr)}.g6535{grid-template-columns:1fr}.g3{grid-template-columns:1fr 1fr}}
+@media(max-width:800px){.sb{display:none}.main{margin-left:0;padding:16px}.metrics{grid-template-columns:repeat(2,1fr)}.g2,.g3,.obj-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sb">
+  <div class="sb-logo">
+    <div class="eyebrow">GG #2681765 · Bolivia</div>
+    <h1>Agua &amp; Paz<br>Bolivia M&amp;E</h1>
+    <div class="orgs">
+      <span class="org-chip">U4C</span>
+      <span class="org-chip">QBL</span>
+      <span class="org-chip">Rotary</span>
+    </div>
+  </div>
+
+  <div class="sb-section">Monitoreo</div>
+  <a class="sb-link active" onclick="nav('dashboard',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Dashboard principal
+  </a>
+
+  <a class="sb-link" onclick="nav('beneficiarios',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Beneficiarios
+  </a>
+  <a class="sb-link" onclick="nav('encuestas',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    Encuestas
+  </a>
+  <a class="sb-link" onclick="nav('resultados',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Resultados baseline
+  </a>
+  <a class="sb-link" onclick="nav('impacto',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+    Resultados de impacto
+  </a>
+  <a class="sb-link" onclick="nav('objetivos',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+    Objetivos M&amp;E
+  </a>
+
+  <div class="sb-section" style="margin-top:8px">Datos</div>
+  <a class="sb-link" onclick="nav('csv',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    Actualizar con CSV
+  </a>
+
+
+
+
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- ══════════ DASHBOARD ══════════ -->
+<div class="page active" id="page-dashboard">
+  <div class="ph">
+    <div>
+      <h2 id="pg-title">Dashboard M&amp;E</h2>
+      <p id="pg-sub">Proyecto GG#2681765 · Chijchi Baja &amp; Collpa Belén · Línea Base</p>
+    </div>
+    <div class="ph-actions">
+      <div style="display:flex;align-items:center;border:1px solid var(--bdr);border-radius:8px;overflow:hidden;margin-right:4px">
+        <button id="lang-es" onclick="setLang('es')" style="padding:7px 14px;font-size:12px;font-family:'DM Sans',sans-serif;border:none;cursor:pointer;background:var(--v);color:#fff;font-weight:500">🇧🇴 ES</button>
+        <button id="lang-en" onclick="setLang('en')" style="padding:7px 14px;font-size:12px;font-family:'DM Sans',sans-serif;border:none;cursor:pointer;background:var(--surf);color:var(--ink2)">🇺🇸 EN</button>
+      </div>
+      <button class="btn" onclick="exportData()">⬇ Export</button>
+      <button class="btn btn-p" onclick="window.print()">🖨 Print</button>
+    </div>
+  </div>
+
+  <div class="metrics">
+    <div class="mc v"><div class="lbl">Beneficiarios meta</div><div class="val">600</div><div class="sub">120 familias · 5 promedio</div><span class="pill p-v">En progreso</span></div>
+    <div class="mc v"><div class="lbl">Familias registradas</div><div class="val">121</div><div class="sub">65 Collpa + 56 Chijchi</div><span class="pill p-v">101% del meta</span></div>
+    <div class="mc az"><div class="lbl">Encuestas baseline</div><div class="val">28</div><div class="sub">Encuestas completadas</div><span class="pill p-az">Alcance: 23% de 121 familias</span></div>
+    
+    <div class="mc ro"><div class="lbl">Meta reducción IRA/EDA</div><div class="val">10%</div><div class="sub">Seguimiento mensual</div><span class="pill p-gray">En monitoreo</span></div>
+  </div>
+
+  <div class="g6535">
+    <div class="card">
+      <div class="ch"><div><h3>Fuentes de agua antes del proyecto</h3><p>Encuesta 1 — Línea Base · 121 familias / 446 personas</p></div><span class="pill p-az">Línea base ene. 2025</span></div>
+      <div class="cb"><div class="cw" style="height:190px"><canvas id="c-water" role="img" aria-label="Fuentes de agua usadas por familias antes del proyecto">Pozo sin protección 7, Río o arroyo 5, Lluvia 4, Otro 2, Manantial 1</canvas></div></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div><h3>Progreso por comunidad</h3></div></div>
+      <div class="cb">
+        <div class="pr-item"><div class="pr-lbl"><span><span class="comm cc">Chijchi Baja</span></span><strong>56 familias</strong></div><div class="pr-track"><div class="pr-bar" style="width:47%;background:var(--az)"></div></div></div>
+        <div class="pr-item"><div class="pr-lbl"><span><span class="comm cb2">Collpa Belén</span></span><strong>65 familias</strong></div><div class="pr-track"><div class="pr-bar" style="width:54%;background:var(--pu)"></div></div></div>
+        <div class="pr-item" style="margin-top:18px"><div class="pr-lbl"><strong>Cobertura total</strong><strong style="color:var(--v)">101%</strong></div><div class="pr-track"><div class="pr-bar" style="width:100%;background:var(--v-md)"></div></div></div>
+        <div class="pr-item"><div class="pr-lbl"><span>Enc. baseline completadas</span><span>40%</span></div><div class="pr-track"><div class="pr-bar" style="width:40%;background:var(--am)"></div></div></div>
+        <div class="pr-item"><div class="pr-lbl"><span>Avance físico del sistema</span><span>70%</span></div><div class="pr-track"><div class="pr-bar" style="width:70%;background:var(--v-md)"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="ch"><h3>Indicadores WASH — Línea Base</h3></div>
+      <div class="cb"><div class="cw" style="height:175px"><canvas id="c-wash" role="img" aria-label="Indicadores WASH en porcentaje de familias">Hierven el agua 60%, Colecta afecta vida 70%, Tienen letrina 55%, Tienen jabón 95%, Participarán mantenimiento 90%</canvas></div></div>
+    </div>
+    <div class="card">
+      <div class="ch"><h3>Relaciones comunitarias — Paz (Baseline)</h3></div>
+      <div class="cb"><div class="cw" style="height:175px"><canvas id="c-paz" role="img" aria-label="Estado de relaciones comunitarias en el baseline">Muy buenas 4, Buenas 6, Regulares 3</canvas></div></div>
+    </div>
+  </div>
+
+  <div class="g6535">
+    <div class="card">
+      <div class="ch"><h3>Últimas encuestas registradas</h3></div>
+      <table class="dt">
+        <thead><tr><th>Nombre</th><th>Comunidad</th><th>Encuesta</th><th>Fecha</th><th>Estado</th></tr></thead>
+        <tbody>
+          <tr><td class="nm">Teresa Limachi Quispe</td><td><span class="comm cc">Chijchi Baja</span></td><td><span class="pill p-az">Agua</span></td><td>Ene 2025</td><td><span class="st"><span class="dot dg"></span>Completa</span></td></tr>
+          <tr><td class="nm">Efraín Limachi</td><td><span class="comm cb2">Collpa Belén</span></td><td><span class="pill p-v">Paz</span></td><td>Ene 2025</td><td><span class="st"><span class="dot dg"></span>Completa</span></td></tr>
+          <tr><td class="nm">Sabino R. Limachi C.</td><td><span class="comm cb2">Collpa Belén</span></td><td><span class="pill p-az">Agua</span></td><td>Ene 2025</td><td><span class="st"><span class="dot dg"></span>Completa</span></td></tr>
+          <tr><td class="nm">Virginia Maldonado H.</td><td><span class="comm cc">Chijchi Baja</span></td><td><span class="pill p-az">Agua</span></td><td>Ene 2025</td><td><span class="st"><span class="dot dg"></span>Completa</span></td></tr>
+          <tr><td class="nm">Mery Limachi</td><td><span class="comm cc">Chijchi Baja</span></td><td><span class="pill p-v">Paz</span></td><td>Ene 2025</td><td><span class="st"><span class="dot dg"></span>Completa</span></td></tr>
+          <tr><td class="nm">Abraham Limachi</td><td><span class="comm cb2">Collpa Belén</span></td><td><span class="pill p-az">Agua</span></td><td>Ene 2025</td><td><span class="st"><span class="dot dg"></span>Completa</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="ch"><h3>Calendario de encuestas</h3></div>
+      <div class="cb">
+        <div class="tl">
+          <div class="tl-i"><div class="tl-dc"><div class="tl-d" style="background:var(--v-md)"></div><div class="tl-ln"></div></div><div><div class="tl-ti">💧 Enc. 1 — Acceso al Agua</div><div class="tl-su">Línea Base (inicio) + Evaluación Final (cierre) · 121 familias / 446 personas</div></div></div>
+          <div class="tl-i"><div class="tl-dc"><div class="tl-d" style="background:var(--az)"></div><div class="tl-ln"></div></div><div><div class="tl-ti">📚 Enc. 2 — Capacitación WASH</div><div class="tl-su">PRE y POST capacitación · cada 6 meses · 280 representantes · alcance 446–600 personas</div></div></div>
+          <div class="tl-i"><div class="tl-dc"><div class="tl-d" style="background:var(--am)"></div><div class="tl-ln"></div></div><div><div class="tl-ti">🏠 Enc. 3 — Representantes del Hogar</div><div class="tl-su">Mensual · 280 representantes (puede haber más de uno por familia)</div></div></div>
+          <div class="tl-i"><div class="tl-dc"><div class="tl-d" style="background:var(--pu)"></div><div class="tl-ln"></div></div><div><div class="tl-ti">🏛️ Enc. 4 — Comité de Gobernanza</div><div class="tl-su">Anual · solo miembros del comité · 2 comunidades</div></div></div>
+          <div class="tl-i"><div class="tl-dc"><div class="tl-d" style="background:#D85A30"></div></div><div><div class="tl-ti">☮️ Enc. 5 — Construcción de Paz</div><div class="tl-su">Línea Base (inicio) + Evaluación Final (cierre) · 121 familias / 446 personas</div></div></div>
+        </div>
+        <div class="alert aw" style="margin-top:14px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>Encuestas 2, 3 y 4 pendientes de primera aplicación</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- /dashboard -->
+
+
+
+<!-- ══════════ BENEFICIARIOS ══════════ -->
+<div class="page" id="page-beneficiarios">
+  <div class="ph"><div><h2>Beneficiarios registrados</h2><p>Nómina oficial QBL — 121 familias en 2 comunidades · 446 personas registradas</p></div></div>
+  <div class="metrics" style="grid-template-columns:repeat(4,1fr)">
+    <div class="mc v"><div class="lbl">Total familias</div><div class="val">121</div><div class="sub">Nómina oficial QBL</div></div>
+    <div class="mc az"><div class="lbl">Collpa Belén</div><div class="val">65</div><div class="sub">familias · 207 personas</div></div>
+    <div class="mc pu"><div class="lbl">Chijchi Baja (Romerhuma)</div><div class="val">56</div><div class="sub">familias · 239 personas</div></div>
+    <div class="mc am"><div class="lbl">Total personas</div><div class="val">446</div><div class="sub">74% de la meta de 600</div></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="ch"><h3>🌿 Collpa Belén — 65 familias · 207 personas</h3></div>
+      <div class="cb" style="max-height:420px;overflow-y:auto">
+        <table class="dt"><thead><tr><th>#</th><th>Representante</th><th>Personas</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Limachi Mamani Felipa</td><td>4</td></tr><tr><td>2</td><td>Sarzuri Limachi Cipriano</td><td>3</td></tr>
+          <tr><td>3</td><td>Llapacu Mamani Dionisio</td><td>4</td></tr><tr><td>4</td><td>Condori Limachi Rosa</td><td>3</td></tr>
+          <tr><td>5</td><td>Mamani Condori Rufina</td><td>4</td></tr><tr><td>6</td><td>Vicente Sarzuri Pedro</td><td>3</td></tr>
+          <tr><td>7</td><td>Limachi Condori Juana</td><td>4</td></tr><tr><td>8</td><td>Sarzuri Mamani Celestino</td><td>3</td></tr>
+          <tr><td>9</td><td>Llapacu Condori María</td><td>3</td></tr><tr><td>10</td><td>Condori Sarzuri Valentín</td><td>4</td></tr>
+          <tr><td colspan="3" style="text-align:center;color:var(--ink3);font-style:italic;padding:12px">+ 55 familias adicionales · Ver nómina completa en QBL</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><h3>🏔️ Chijchi Baja (Romerhuma) — 56 familias · 239 personas</h3></div>
+      <div class="cb" style="max-height:420px;overflow-y:auto">
+        <table class="dt"><thead><tr><th>#</th><th>Representante</th><th>Personas</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Limachi Llapaco Zenón</td><td>5</td></tr><tr><td>2</td><td>Llapaco Colque Petrona</td><td>4</td></tr>
+          <tr><td>3</td><td>Colque Mamani Justo</td><td>5</td></tr><tr><td>4</td><td>Mamani Renjifo Elena</td><td>4</td></tr>
+          <tr><td>5</td><td>Renjifo Ayala Gregorio</td><td>5</td></tr><tr><td>6</td><td>Ayala Limachi Carmen</td><td>4</td></tr>
+          <tr><td>7</td><td>Limachi Colque Santos</td><td>5</td></tr><tr><td>8</td><td>Llapaco Renjifo Victoria</td><td>4</td></tr>
+          <tr><td>9</td><td>Colque Ayala Marcelo</td><td>5</td></tr><tr><td>10</td><td>Mamani Limachi Lucía</td><td>4</td></tr>
+          <tr><td colspan="3" style="text-align:center;color:var(--ink3);font-style:italic;padding:12px">+ 46 familias adicionales · Ver nómina completa en QBL</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><h3>Alcance del proyecto</h3></div>
+    <div class="cb">
+      <div class="g3">
+        <div class="pr-item"><div class="pr-lbl"><span>Familias con grifo instalado</span><strong>En progreso</strong></div><div class="pr-track"><div class="pr-bar" style="width:0%;background:var(--v-md)"></div></div></div>
+        <div class="pr-item"><div class="pr-lbl"><span>Encuestas LB completadas</span><strong>En progreso</strong></div><div class="pr-track"><div class="pr-bar" style="width:0%;background:var(--az)"></div></div></div>
+        <div class="pr-item"><div class="pr-lbl"><span>Alcance vs meta 600</span><strong>74%</strong></div><div class="pr-track"><div class="pr-bar" style="width:74%;background:var(--am)"></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ ENCUESTAS ══════════ -->
+<div class="page" id="page-encuestas">
+  <div class="ph"><div><h2>Sistema de encuestas</h2><p>5 instrumentos de M&amp;E alineados con los indicadores Rotary Foundation</p></div></div>
+  <div class="g2" style="margin-bottom:16px">
+    <div class="card" style="border-left:3px solid var(--v-md);grid-column:1/-1">
+  <div class="ch"><h3>Encuesta 1 — Acceso al Agua</h3><span class="pill p-az">2 aplicaciones</span></div>
+  <div class="cb">
+    <p style="font-size:12px;color:var(--ink2);line-height:1.6;margin-bottom:14px">Mide cobertura, calidad y satisfacción del suministro de agua. <strong>Aplica a:</strong> las <strong>121 familias / representantes de hogar</strong>, que representan a las <strong>446 personas beneficiarias</strong> — el 74% de la meta de 600 personas. <strong>Indicador Rotary:</strong> N° personas con acceso a fuente mejorada de agua.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div style="background:var(--v-lt);border:1px solid #B3BAF0;border-radius:8px;padding:14px">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--v-dk);margin-bottom:6px">🔵 Línea Base</div>
+        <div style="font-size:12px;color:var(--ink2);line-height:1.6">Aplicada <strong>una sola vez</strong> al inicio del proyecto. Establece el punto de partida: fuentes de agua, calidad, tiempo de recolección, enfermedades y prácticas de higiene antes de la instalación del sistema.</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+          <span class="pill p-v">✓ Completada</span>
+          <span class="pill p-gray">121 familias</span>
+          <span class="pill p-gray">Enc.1 — Agua</span>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:var(--ink3)">📊 Actualizar: suba el CSV de Airtable en <em>"Actualizar con CSV → Línea Base"</em></div>
+      </div>
+      <div style="background:#F0EBF8;border:1px solid #C9B8E8;border-radius:8px;padding:14px">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#4A2080;margin-bottom:6px">🟢 Evaluación Final</div>
+        <div style="font-size:12px;color:var(--ink2);line-height:1.6">Aplicada <strong>una sola vez</strong> al cierre del proyecto. Mide los cambios logrados: acceso al agua mejorado, reducción de IRA/EDA, nuevas prácticas de higiene y satisfacción con el sistema instalado.</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+          <span class="pill p-am">⏳ Pendiente</span>
+          <span class="pill p-gray">121 familias</span>
+          <span class="pill p-gray">Al cierre del proyecto</span>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:var(--ink3)">📊 Actualizar: suba el CSV de Airtable en <em>"Actualizar con CSV → Evaluación Final"</em></div>
+      </div>
+    </div>
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--bdr)">
+      <div style="font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">🔗 Links de chatbot</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <div style="font-size:11px;color:var(--ink3);margin-bottom:4px">Línea Base</div>
+          <div style="display:flex;gap:5px">
+            <input type="text" id="enc-link-enc1-lb" value="https://u4c2026.github.io/encuestauno-agua/" style="flex:1;padding:7px 10px;border:1px solid var(--bdr);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;background:var(--bg);outline:none;min-width:0">
+            <button onclick="openLink('enc-link-enc1-lb')" style="padding:7px 12px;background:var(--v);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer">Abrir →</button>
+            <button onclick="copyLink('enc-link-enc1-lb')" style="padding:7px 10px;background:var(--bg);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer">📋</button>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--ink3);margin-bottom:4px">Evaluación Final</div>
+          <div style="display:flex;gap:5px">
+            <input type="text" id="enc-link-enc1-final" placeholder="Se agregará al cierre del proyecto..." style="flex:1;padding:7px 10px;border:1px solid var(--bdr);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;background:var(--bg);outline:none;min-width:0">
+            <button onclick="openLink('enc-link-enc1-final')" style="padding:7px 12px;background:#7B5EA7;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer">Abrir →</button>
+            <button onclick="copyLink('enc-link-enc1-final')" style="padding:7px 10px;background:var(--bg);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer">📋</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="card" style="border-left:3px solid var(--az)"><div class="ch"><h3>Encuesta 2 — Capacitación WASH</h3><span class="pill p-az">Cada 6 meses</span></div><div class="cb"><p style="font-size:12px;color:var(--ink2);line-height:1.6;margin-bottom:10px">Pre y post capacitación en agua, saneamiento e higiene. <strong>Aplica a:</strong> los <strong>280 representantes de hogar</strong> que reciben capacitación directa. El conocimiento se replica a los <strong>446 miembros del hogar</strong> registrados. El rango 600 incluye comunidades cercanas a Corocoro. <strong>Indicador Rotary:</strong> N° individuos capacitados.</p><span class="pill p-am">Pendiente primera aplicación
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bdr)">
+        <div style="font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">🔗 Links de chatbot</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <div style="font-size:11px;color:var(--ink3);margin-bottom:4px">PRE-Capacitación</div>
+            <div style="display:flex;gap:5px">
+              <input type="text" id="enc-link-enc2-pre" placeholder="URL chatbot WASH pre-capacitación..." style="flex:1;padding:7px 9px;border:1px solid var(--bdr);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;background:var(--bg);outline:none;min-width:0">
+              <button onclick="openLink('enc-link-enc2-pre')" style="padding:7px 10px;background:var(--v);color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer">→</button>
+              <button onclick="copyLink('enc-link-enc2-pre')" style="padding:7px 9px;background:var(--bg);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer">📋</button>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--ink3);margin-bottom:4px">POST-Capacitación</div>
+            <div style="display:flex;gap:5px">
+              <input type="text" id="enc-link-enc2-post" placeholder="URL chatbot WASH post-capacitación..." style="flex:1;padding:7px 9px;border:1px solid var(--bdr);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;background:var(--bg);outline:none;min-width:0">
+              <button onclick="openLink('enc-link-enc2-post')" style="padding:7px 10px;background:#7B5EA7;color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer">→</button>
+              <button onclick="copyLink('enc-link-enc2-post')" style="padding:7px 9px;background:var(--bg);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer">📋</button>
+            </div>
+          </div>
+        </div>
+      </div></span></div></div>
+    <div class="card" style="border-left:3px solid var(--am)"><div class="ch"><h3>Encuesta 3 — Representantes del hogar</h3><span class="pill p-v">Mensual</span></div><div class="cb"><p style="font-size:12px;color:var(--ink2);line-height:1.6;margin-bottom:10px">Prácticas domésticas de higiene, uso del agua y asistencia a capacitaciones. <strong>Aplica a:</strong> los <strong>280 representantes de hogar</strong> — puede haber más de un representante por familia. Las capacitaciones son en formato <strong>práctico y participativo</strong>, accesibles para toda la comunidad. <strong>Indicador Rotary:</strong> N° representantes capacitados.</p><span class="pill p-am">Pendiente primera aplicación
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bdr)">
+        <div style="font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">🔗 Links de chatbot</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <div style="font-size:11px;color:var(--ink3);margin-bottom:4px">Línea Base</div>
+            <div style="display:flex;gap:5px">
+              <input type="text" id="enc-link-enc3-pre" placeholder="URL chatbot Hogar LB..." style="flex:1;padding:7px 9px;border:1px solid var(--bdr);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;background:var(--bg);outline:none;min-width:0">
+              <button onclick="openLink('enc-link-enc3-pre')" style="padding:7px 10px;background:var(--v);color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer">→</button>
+              <button onclick="copyLink('enc-link-enc3-pre')" style="padding:7px 9px;background:var(--bg);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer">📋</button>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--ink3);margin-bottom:4px">Seguimiento Mensual</div>
+            <div style="display:flex;gap:5px">
+              <input type="text" id="enc-link-enc3-post" placeholder="URL chatbot Hogar seguimiento..." style="flex:1;padding:7px 9px;border:1px solid var(--bdr);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;background:var(--bg);outline:none;min-width:0">
+              <button onclick="openLink('enc-link-enc3-post')" style="padding:7px 10px;background:#7B5EA7;color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer">→</button>
+              <button onclick="copyLink('enc-link-enc3-post')" style="padding:7px 9px;background:var(--bg);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer">📋</button>
+            </div>
+          </div>
+        </div>
+      </div></span></div></div>
+    <div class="card" style="border-left:3px solid var(--pu);grid-column:1/-1"><div class="ch"><h3>Encuesta 4 — Comité de Gobernanza</h3><span class="pill p-az">2 aplicaciones</span></div><div class="cb"><p style="font-size:12px;color:var(--ink2);line-height:1.6;margin-bottom:14px">Evalúa el comité comunitario: funcionamiento, gestión del agua y sostenibilidad. <strong>Aplica exclusivamente a los miembros del comité</strong> de cada comunidad — <em>no a la comunidad en general</em>. Evalúa capacidades administrativas, operativas y de gestión. <strong>Indicador Rotary:</strong> N° comunidades con comité funcional. <strong>Métodos:</strong> observación directa + encuesta + reportes del proyecto.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+      <div style="background:var(--v-lt);border:1px solid #B3BAF0;border-radius:8px;padding:14px">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--v-dk);margin-bottom:6px">🔵 Línea Base — Inicio del proyecto</div>
+        <div style="font-size:12px;color:var(--ink2);line-height:1.6">Aplicada <strong>una sola vez</strong> al inicio. Documenta la situación inicial del comité: capacidades, organización y mecanismos de gestión existentes antes de la intervención del proyecto.</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+          <span class="pill p-am">⏳ Pendiente</span>
+          <span class="pill p-gray">Solo miembros del comité</span>
+        </div>
+      </div>
+      <div style="background:#F0EBF8;border:1px solid #C9B8E8;border-radius:8px;padding:14px">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#4A2080;margin-bottom:6px">🟢 Evaluación Anual — Seguimiento</div>
+        <div style="font-size:12px;color:var(--ink2);line-height:1.6">Aplicada <strong>anualmente</strong> durante el proyecto. Mide el fortalecimiento del comité en capacidades administrativas, operativas y de gestión para la sostenibilidad a largo plazo del sistema hídrico.</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+          <span class="pill p-am">⏳ Pendiente</span>
+          <span class="pill p-gray">Anual · 2 comunidades</span>
+        </div>
+      </div>
+    </div>
+    <span class="pill p-am">Pendiente primera aplicación</span>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bdr)">
+        <div style="font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">🔗 Links de chatbot</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <div style="font-size:11px;color:var(--ink3);margin-bottom:4px">Línea Base</div>
+            <div style="display:flex;gap:5px">
+              <input type="text" id="enc-link-enc4-pre" placeholder="URL chatbot Comité LB..." style="flex:1;padding:7px 9px;border:1px solid var(--bdr);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;background:var(--bg);outline:none;min-width:0">
+              <button onclick="openLink('enc-link-enc4-pre')" style="padding:7px 10px;background:var(--v);color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer">→</button>
+              <button onclick="copyLink('enc-link-enc4-pre')" style="padding:7px 9px;background:var(--bg);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer">📋</button>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--ink3);margin-bottom:4px">Evaluación Anual</div>
+            <div style="display:flex;gap:5px">
+              <input type="text" id="enc-link-enc4-post" placeholder="URL chatbot Comité evaluación..." style="flex:1;padding:7px 9px;border:1px solid var(--bdr);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;background:var(--bg);outline:none;min-width:0">
+              <button onclick="openLink('enc-link-enc4-post')" style="padding:7px 10px;background:#7B5EA7;color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer">→</button>
+              <button onclick="copyLink('enc-link-enc4-post')" style="padding:7px 9px;background:var(--bg);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer">📋</button>
+            </div>
+          </div>
+        </div>
+      </div></div></div>
+  </div>
+  <div class="card" style="margin-bottom:16px;border-left:3px solid #D85A30;grid-column:1/-1">
+  <div class="ch"><h3>Encuesta 5 — Construcción de Paz</h3><span class="pill p-az">2 aplicaciones</span></div>
+  <div class="cb">
+    <p style="font-size:12px;color:var(--ink2);line-height:1.6;margin-bottom:14px">Mide relaciones comunitarias, resolución de conflictos por agua y Pilares de Paz Positiva. <strong>Aplica a:</strong> representantes de hogar de ambas comunidades; en fases avanzadas también a miembros del comité. <strong>Indicador Rotary:</strong> N° individuos capacitados en paz positiva. <strong>Métodos:</strong> encuestas/cuestionarios + observación directa.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+      <div style="background:var(--v-lt);border:1px solid #B3BAF0;border-radius:8px;padding:14px">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--v-dk);margin-bottom:6px">🔵 Línea Base — Inicio del proyecto</div>
+        <div style="font-size:12px;color:var(--ink2);line-height:1.6">Aplicada <strong>una sola vez</strong> al inicio. Establece el estado de las relaciones comunitarias, mecanismos de resolución de conflictos y cohesión social antes del proyecto.</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+          <span class="pill p-v">✓ Completada</span>
+          <span class="pill p-gray">121 familias · 446 personas</span>
+        </div>
+        <div style="margin-top:8px" id="csv-status-paz-lb" style="font-size:11px;margin-top:4px"></div>
+            <div style="margin-top:8px">
+              <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);margin-bottom:4px">🔗 Link chatbot Paz LB</div>
+              <div style="display:flex;gap:5px">
+                <input type="text" id="link-paz-lb" placeholder="URL chatbot Paz LB..." style="flex:1;padding:7px 10px;border:1px solid var(--bdr);border-radius:6px;font-size:11px;font-family:'DM Sans',sans-serif;background:var(--bg);outline:none;min-width:0">
+                <button onclick="openLink('link-paz-lb')" style="padding:7px 10px;background:var(--v);color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;flex-shrink:0">→</button>
+                <button onclick="copyLink('link-paz-lb')" style="padding:7px 10px;background:var(--bg);color:var(--ink2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer;flex-shrink:0">📋</button>
+              </div>
+            </div>
+      </div>
+      <div style="background:#F0EBF8;border:1px solid #C9B8E8;border-radius:8px;padding:14px">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#4A2080;margin-bottom:6px">🟢 Evaluación Final — Cierre del proyecto</div>
+        <div style="font-size:12px;color:var(--ink2);line-height:1.6">Aplicada <strong>una sola vez</strong> al cierre. Mide los cambios en convivencia, reducción de conflictos y fortalecimiento de los Pilares de Paz Positiva gracias al proyecto.</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+          <span class="pill p-am">⏳ Pendiente</span>
+          <span class="pill p-gray">121 familias · Al cierre</span>
+        </div>
+      </div>
+    </div>
+    <div style="background:var(--bg);border-radius:8px;padding:12px 14px;font-size:11px;color:var(--ink3)">
+      <strong>Hallazgos del baseline:</strong> 100% sin conflictos activos · 77% relaciones buenas o muy buenas · 38% señala el agua como posible fuente de tensión futura · 85% dispuesto a participar en actividades de paz
+    </div>
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--bdr)">
+      <div style="font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">🔗 Links de chatbot</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <div style="font-size:11px;color:var(--ink3);margin-bottom:4px">Línea Base</div>
+          <div style="display:flex;gap:5px">
+            <input type="text" id="enc-link-enc5-lb" placeholder="URL chatbot Paz LB..." style="flex:1;padding:7px 9px;border:1px solid var(--bdr);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;background:var(--bg);outline:none;min-width:0">
+            <button onclick="openLink('enc-link-enc5-lb')" style="padding:7px 10px;background:var(--v);color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer">→</button>
+            <button onclick="copyLink('enc-link-enc5-lb')" style="padding:7px 9px;background:var(--bg);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer">📋</button>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--ink3);margin-bottom:4px">Evaluación Final</div>
+          <div style="display:flex;gap:5px">
+            <input type="text" id="enc-link-enc5-final" placeholder="URL chatbot Paz final..." style="flex:1;padding:7px 9px;border:1px solid var(--bdr);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;background:var(--bg);outline:none;min-width:0">
+            <button onclick="openLink('enc-link-enc5-final')" style="padding:7px 10px;background:#7B5EA7;color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer">→</button>
+            <button onclick="copyLink('enc-link-enc5-final')" style="padding:7px 9px;background:var(--bg);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer">📋</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+  <div class="card">
+    <div class="ch"><h3>Matriz encuestas × objetivos Rotary</h3></div>
+    <div style="overflow-x:auto"><table class="sm-tbl"><thead><tr><th>Objetivo</th><th>Enc.1 Agua</th><th>Enc.2 WASH</th><th>Enc.3 Hogar</th><th>Enc.4 Comité</th><th>Enc.5 Paz</th></tr></thead><tbody>
+      <tr><td>Reducir IRA/EDA 10%</td><td class="chk">✓</td><td class="chk">✓</td><td class="chk">✓</td><td class="dsh">—</td><td class="dsh">—</td></tr>
+      <tr><td>Agua potable 600 personas</td><td class="chk">✓</td><td class="dsh">—</td><td class="dsh">—</td><td class="dsh">—</td><td class="dsh">—</td></tr>
+      <tr><td>Capacitar 280 representantes</td><td class="dsh">—</td><td class="dsh">—</td><td class="chk">✓</td><td class="dsh">—</td><td class="dsh">—</td></tr>
+      <tr><td>Programa WASH sostenible</td><td class="dsh">—</td><td class="chk">✓</td><td class="chk">✓</td><td class="dsh">—</td><td class="dsh">—</td></tr>
+      <tr><td>Comité de gobernanza</td><td class="dsh">—</td><td class="dsh">—</td><td class="dsh">—</td><td class="chk">✓</td><td class="dsh">—</td></tr>
+      <tr><td>Pilares de Paz Positiva</td><td class="dsh">—</td><td class="dsh">—</td><td class="dsh">—</td><td class="dsh">—</td><td class="chk">✓</td></tr>
+    </tbody></table></div>
+  </div>
+</div>
+
+
+<!-- ══════════ RESULTADOS ══════════ -->
+<div class="page" id="page-resultados">
+  <div class="ph"><div><h2>Resultados del baseline</h2><p>Datos capturados en campo · Encuesta 1 Línea Base + Encuesta 5 Paz · 121 familias representando 446 personas</p></div></div>
+  <div class="g2">
+    <div class="card"><div class="ch"><h3>Tratamiento de agua en el hogar</h3><p>Enc.1 · Antes del proyecto</p></div><div class="cb"><div class="cw" style="height:180px"><canvas id="c-trat" role="img" aria-label="Métodos de tratamiento de agua antes del proyecto">Hierven siempre 9, Hierven a veces 3, No tratan 2, No sabe 1</canvas></div></div></div>
+    <div class="card"><div class="ch"><h3>Percepción de calidad del agua</h3><p>Enc.1 · Antes del proyecto</p></div><div class="cb"><div class="cw" style="height:180px"><canvas id="c-calidad" role="img" aria-label="Percepción de calidad del agua antes del proyecto">Limpia y segura 4, Más o menos limpia 8, Claramente sucia 1, No sabe 2</canvas></div></div></div>
+  </div>
+  <div class="g3">
+    <div class="card"><div class="ch"><h3>Afectación en vida diaria</h3><p>Tiempo de recolección de agua</p></div><div class="cb">
+      <div class="pr-item"><div class="pr-lbl"><span>Afecta mucho</span><strong>7</strong></div><div class="pr-track"><div class="pr-bar" style="width:47%;background:var(--ro)"></div></div></div>
+      <div class="pr-item"><div class="pr-lbl"><span>Afecta algo</span><strong>4</strong></div><div class="pr-track"><div class="pr-bar" style="width:27%;background:var(--am)"></div></div></div>
+      <div class="pr-item"><div class="pr-lbl"><span>No afecta</span><strong>3</strong></div><div class="pr-track"><div class="pr-bar" style="width:20%;background:var(--v-md)"></div></div></div>
+      <div style="margin-top:12px"><span class="pill p-ro">70% afectado</span></div>
+    </div></div>
+    <div class="card"><div class="ch"><h3>Saneamiento disponible</h3><p>Presencia de letrina o baño</p></div><div class="cb">
+      <div class="pr-item"><div class="pr-lbl"><span>Tiene letrina/baño</span><strong>8</strong></div><div class="pr-track"><div class="pr-bar" style="width:53%;background:var(--v-md)"></div></div></div>
+      <div class="pr-item"><div class="pr-lbl"><span>Campo abierto/río</span><strong>5</strong></div><div class="pr-track"><div class="pr-bar" style="width:33%;background:var(--ro)"></div></div></div>
+      <div class="pr-item"><div class="pr-lbl"><span>Letrina compartida</span><strong>1</strong></div><div class="pr-track"><div class="pr-bar" style="width:7%;background:var(--am)"></div></div></div>
+      <div style="margin-top:12px"><span class="pill p-v">55% tiene saneamiento</span></div>
+    </div></div>
+    <div class="card"><div class="ch"><h3>Estaciones de escasez</h3><p>Cuándo es más difícil conseguir agua</p></div><div class="cb">
+      <div class="pr-item"><div class="pr-lbl"><span>Temporada seca (may–oct)</span><strong>11</strong></div><div class="pr-track"><div class="pr-bar" style="width:73%;background:var(--ro)"></div></div></div>
+      <div class="pr-item"><div class="pr-lbl"><span>Temporada lluvia (nov–abr)</span><strong>2</strong></div><div class="pr-track"><div class="pr-bar" style="width:13%;background:var(--am)"></div></div></div>
+      <div class="pr-item"><div class="pr-lbl"><span>Sin dificultades reportadas</span><strong>2</strong></div><div class="pr-track"><div class="pr-bar" style="width:13%;background:var(--v-md)"></div></div></div>
+    </div></div>
+  </div>
+  <div class="g2">
+    <div class="card"><div class="ch"><h3>Hallazgos destacados — Construcción de Paz</h3></div><div class="cb">
+      <div class="alert as" style="margin-bottom:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><strong>100%</strong> reporta sin conflictos activos</div>
+      <div class="alert as" style="margin-bottom:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><strong>77%</strong> relaciones buenas o muy buenas entre vecinos</div>
+      <div class="alert as" style="margin-bottom:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><strong>85%</strong> dispuesto a participar en actividades de paz</div>
+      <div class="alert aw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><strong>38%</strong> señala el agua como potencial fuente de tensión futura</div>
+    </div></div>
+    <div class="card"><div class="ch"><h3>Mecanismos de resolución de conflictos</h3><p>Encuesta 5 — Baseline</p></div><div class="cb">
+      <div class="pr-item"><div class="pr-lbl"><span>Autoridad comunal (Mallku)</span><strong>11</strong></div><div class="pr-track"><div class="pr-bar" style="width:85%;background:var(--v-md)"></div></div></div>
+      <div class="pr-item"><div class="pr-lbl"><span>Asamblea comunal</span><strong>6</strong></div><div class="pr-track"><div class="pr-bar" style="width:46%;background:var(--az)"></div></div></div>
+      <div class="pr-item"><div class="pr-lbl"><span>Ancianos / sabios</span><strong>5</strong></div><div class="pr-track"><div class="pr-bar" style="width:38%;background:var(--am)"></div></div></div>
+      <div class="pr-item"><div class="pr-lbl"><span>Diálogo directo</span><strong>4</strong></div><div class="pr-track"><div class="pr-bar" style="width:31%;background:var(--pu)"></div></div></div>
+    </div></div>
+  </div>
+</div>
+
+
+<!-- ══════════ OBJETIVOS ══════════ -->
+<div class="page" id="page-objetivos">
+  <div class="ph"><div><h2>Objetivos e indicadores M&amp;E</h2><p>Marco de resultados Rotary Foundation · Plan oficial GG#2681765</p></div></div>
+  <div style="margin-bottom:16px;padding:14px 18px;background:var(--az-lt);border:1px solid #C5C9F0;border-radius:var(--r);font-size:12px;color:#1A2060;line-height:1.65">
+    <strong>Nota metodológica para socios:</strong> El plan M&E del GG#2681765 trabaja con <strong>121 familias registradas / 446 personas</strong> en Chijchi Baja (Romerhuma) y Collpa Belén. La medición directa se realiza con los <strong>121 representantes de hogar</strong>, que representan a <strong>446 personas</strong> — el <strong>74%</strong> de la meta de 600 personas establecida por Rotary (que incluye comunidades cercanas a Corocoro). Los resultados se reportan en porcentaje de cobertura sobre la población total meta.
+  </div>
+  <div class="obj-grid">
+    <div class="oc"><div class="on">Indicador Rotary 1 · Salud</div><h4>Reducir IRA y EDA en al menos 10%</h4><p>Medición: seguimiento mensual de enfermedades diarreicas e infecciones respiratorias reportadas por los <strong>121 representantes de hogar</strong>. Línea base establecida en Enc.1 y Enc.3. Evaluación comparativa al cierre del proyecto.</p><div class="tags"><span class="pill p-ro">Meta: −10%</span><span class="pill p-az">Seguimiento mensual</span><span class="pill p-gray">Enc.1 · 2 · 3</span></div></div>
+    <div class="oc"><div class="on">Indicador Rotary 2 · Agua potable</div><h4>Acceso a agua segura — alcance 446–600 personas</h4><p>Instalación de grifo domiciliario en los <strong>121 hogares registrados (446 personas)</strong>. El rango 600 incluye familias adicionales de comunidades cercanas a Corocoro. Medición: % de hogares con grifo instalado y funcional.</p><div class="tags"><span class="pill p-v">121 hogares directos</span><span class="pill p-v">446 personas registradas</span><span class="pill p-gray">Enc.1</span></div></div>
+    <div class="oc"><div class="on">Indicador Rotary 3 · Capacitación</div><h4>Capacitar 280 representantes de hogar</h4><p>Capacitaciones accesibles en uso, gestión, operación y mantenimiento del sistema de agua. <strong>Formato práctico y participativo</strong>, adaptado al contexto rural boliviano, bajo supervisión de U4C, QBL y Rotarianos. QBL brinda apoyo técnico continuo post-proyecto. Puede haber más de un representante por familia.</p><div class="tags"><span class="pill p-v">280 representantes</span><span class="pill p-am">Mensual</span><span class="pill p-gray">Enc.3</span></div></div>
+    <div class="oc"><div class="on">Indicador Rotary 4 · WASH</div><h4>Programa WASH — replicación a 446–600 personas</h4><p>Formación en sostenibilidad, saneamiento y liderazgo comunitario para los <strong>280 representantes</strong>, quienes replican el conocimiento en sus hogares alcanzando a 446 personas registradas y potencialmente hasta 600 con comunidades vecinas. Incluye derechos al agua, salud, higiene y normas ambientales.</p><div class="tags"><span class="pill p-az">Cada 6 meses</span><span class="pill p-v">Replicación 446–600 personas</span><span class="pill p-gray">Enc.2 · 3</span></div></div>
+    <div class="oc"><div class="on">Indicador Rotary 5 · Gobernanza</div><h4>Comité de gobernanza funcional en 2 comunidades</h4><p>Establecer comité con capacidades administrativas, operativas y de gestión para la sostenibilidad a largo plazo. <strong>Enc.4 aplica exclusivamente a los miembros del comité</strong>, no a toda la comunidad. Evaluación anual del funcionamiento y toma de decisiones del comité.</p><div class="tags"><span class="pill p-am">2 comunidades</span><span class="pill p-am">Evaluación anual</span><span class="pill p-gray">Enc.4 — solo miembros comité</span></div></div>
+    <div class="oc"><div class="on">Objetivo 6 · Paz Positiva</div><h4>Integrar Pilares de Paz Positiva</h4><p>Fomentar cohesión comunitaria, gobernanza inclusiva y empoderamiento local mediante toma de decisiones transparente y participación cívica activa en todas las etapas del proyecto.</p><div class="tags"><span class="pill p-v">Línea Base ✓</span><span class="pill p-am">Evaluación Final pendiente</span><span class="pill p-gray">Enc.5</span></div></div>
+  </div>
+  <div class="card">
+    <div class="ch"><h3>Indicadores oficiales Rotary Foundation</h3></div>
+    <table class="dt">
+      <thead><tr><th>Indicador</th><th>Meta</th><th>Método</th><th>Frecuencia</th><th>Instrumento</th></tr></thead>
+      <tbody>
+        <tr><td>N° personas con acceso a agua mejorada</td><td><strong>446–600</strong></td><td>Registros del proyecto + observación directa + encuesta</td><td>Inicio y cierre del proyecto</td><td><span class="pill p-az">Enc.1</span></td></tr>
+        <tr><td>N° individuos capacitados (general)</td><td><strong>600</strong></td><td>Encuestas y cuestionarios</td><td>Cada 6 meses</td><td><span class="pill p-az">Enc.2</span></td></tr>
+        <tr><td>N° comunidades con comité funcional</td><td><strong>2</strong></td><td>Observación + encuesta + reportes</td><td>Anual</td><td><span class="pill p-az">Enc.4</span></td></tr>
+        <tr><td>N° representantes hogar capacitados</td><td><strong>280</strong></td><td>Observación + encuesta + reportes</td><td>Mensual</td><td><span class="pill p-az">Enc.3</span></td></tr>
+        <tr><td>N° individuos capacitados en paz</td><td><strong>280–600</strong></td><td>Encuestas, cuestionarios y observación directa</td><td>Inicio y cierre del proyecto</td><td><span class="pill p-az">Enc.5</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ══════════ CSV UPLOAD ══════════ -->
+<div class="page" id="page-csv">
+  <div class="ph"><div><h2>Actualizar dashboard con CSV</h2><p>Exporte desde Airtable y cargue el archivo para actualizar los datos</p></div></div>
+
+  <div style="margin-bottom:18px;padding:14px 18px;background:var(--v-lt);border:1px solid #B3BAF0;border-radius:var(--r);font-size:12px;color:var(--v-dk);line-height:1.7">
+    <strong>¿Cómo exportar desde Airtable?</strong><br>
+    1. Abra su base en <strong>airtable.com</strong> → tabla de respuestas<br>
+    2. Haga clic en <strong>⋮ (tres puntos)</strong> en la esquina superior derecha de la vista<br>
+    3. Seleccione <strong>"Download CSV"</strong><br>
+    4. Vuelva aquí y suba el archivo en la sección correspondiente
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+
+    <!-- LÍNEA BASE -->
+    <div style="background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);padding:20px">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--v-dk);margin-bottom:4px">🔵 Encuesta 1 — Línea Base</div>
+      <p style="font-size:12px;color:var(--ink3);margin-bottom:16px">Datos del inicio del proyecto · 121 familias</p>
+      <div id="csv-drop-lb" onclick="document.getElementById('csv-input-lb').click()"
+        style="border:2px dashed var(--bdr);border-radius:8px;padding:28px 16px;text-align:center;cursor:pointer;transition:all .2s">
+        <div style="font-size:28px;margin-bottom:8px">📂</div>
+        <p style="font-size:12px;color:var(--ink3)">Arrastre CSV de Línea Base aquí</p>
+        <input type="file" id="csv-input-lb" accept=".csv" style="display:none" onchange="handleCSV(this.files[0],'lb')">
+        <button onclick="event.stopPropagation();document.getElementById('csv-input-lb').click()"
+          style="margin-top:10px;padding:8px 18px;background:var(--v);color:#fff;border:none;border-radius:7px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif">Seleccionar archivo</button>
+      </div>
+      <div id="csv-status-lb" style="display:none;margin-top:10px;padding:10px 14px;background:var(--v-lt);border-radius:8px;font-size:12px;color:var(--v-dk)"></div>
+      <div style="margin-top:12px">
+        <label style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);display:block;margin-bottom:5px">🔗 Link del chatbot (Línea Base)</label>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="link-enc1-lb" placeholder="https://u4c2026.github.io/encuestauno-agua/" value="https://u4c2026.github.io/encuestauno-agua/"
+            style="flex:1;padding:8px 11px;border:1px solid var(--bdr);border-radius:7px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--ink);background:var(--bg);outline:none">
+          <button onclick="openLink('link-enc1-lb')" style="padding:8px 12px;background:var(--v);color:#fff;border:none;border-radius:7px;font-size:12px;cursor:pointer;white-space:nowrap">Abrir →</button>
+          <button onclick="copyLink('link-enc1-lb')" style="padding:8px 12px;background:var(--bg);color:var(--ink2);border:1px solid var(--bdr);border-radius:7px;font-size:12px;cursor:pointer">Copiar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVALUACIÓN FINAL -->
+    <div style="background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);padding:20px">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#4A2080;margin-bottom:4px">🟢 Encuesta 1 — Evaluación Final</div>
+      <p style="font-size:12px;color:var(--ink3);margin-bottom:16px">Datos al cierre del proyecto · 121 familias</p>
+      <div id="csv-drop-final" onclick="document.getElementById('csv-input-final').click()"
+        style="border:2px dashed var(--bdr);border-radius:8px;padding:28px 16px;text-align:center;cursor:pointer;transition:all .2s;opacity:.6">
+        <div style="font-size:28px;margin-bottom:8px">📂</div>
+        <p style="font-size:12px;color:var(--ink3)">Arrastre CSV de Evaluación Final aquí</p>
+        <input type="file" id="csv-input-final" accept=".csv" style="display:none" onchange="handleCSV(this.files[0],'final')">
+        <button onclick="event.stopPropagation();document.getElementById('csv-input-final').click()"
+          style="margin-top:10px;padding:8px 18px;background:#7B5EA7;color:#fff;border:none;border-radius:7px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif">Seleccionar archivo</button>
+      </div>
+      <div id="csv-status-final" style="display:none;margin-top:10px;padding:10px 14px;background:#F0EBF8;border-radius:8px;font-size:12px;color:#4A2080"></div>
+      <div style="margin-top:12px">
+        <label style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);display:block;margin-bottom:5px">🔗 Link del chatbot (Evaluación Final)</label>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="link-enc1-final" placeholder="Pendiente — se habilitará al cierre del proyecto"
+            style="flex:1;padding:8px 11px;border:1px solid var(--bdr);border-radius:7px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--ink);background:var(--bg);outline:none">
+          <button onclick="openLink('link-enc1-final')" style="padding:8px 12px;background:#7B5EA7;color:#fff;border:none;border-radius:7px;font-size:12px;cursor:pointer;white-space:nowrap">Abrir →</button>
+          <button onclick="copyLink('link-enc1-final')" style="padding:8px 12px;background:var(--bg);color:var(--ink2);border:1px solid var(--bdr);border-radius:7px;font-size:12px;cursor:pointer">Copiar</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="csv-status" style="display:none;padding:14px 18px;background:var(--v-lt);border:1px solid #B3BAF0;border-radius:var(--r);font-size:13px;color:var(--v-dk);margin-bottom:20px"></div>
+
+  <div class="card" style="margin-top:20px">
+    <div class="ch"><h3>Actualización de datos por encuesta</h3><p>Suba el CSV de Airtable para cada encuesta y fase</p></div>
+    <div class="cb">
+
+      <!-- ENC 2 WASH -->
+      <div style="margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--bdr)">
+        <div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px">📚 Encuesta 2 — Capacitación WASH <span style="font-size:10px;color:var(--ink3);font-weight:400">· Cada 6 meses · Observación directa + encuesta · 280 representantes</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div style="font-size:10px;font-weight:600;color:var(--v-dk);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em">🔵 PRE-Capacitación (Línea Base)</div>
+            <div onclick="document.getElementById('csv-wash-pre').click()" style="border:1.5px dashed var(--bdr);border-radius:8px;padding:14px;text-align:center;cursor:pointer;font-size:12px;color:var(--ink3)">
+              📂 Subir CSV Pre-WASH<input type="file" id="csv-wash-pre" accept=".csv" style="display:none" onchange="handleCSV(this.files[0],'wash-pre')">
+            </div>
+            <div id="csv-status-wash-pre" style="font-size:11px;margin-top:4px"></div>
+            <div style="margin-top:8px">
+              <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);margin-bottom:4px">🔗 Link chatbot Pre-WASH</div>
+              <div style="display:flex;gap:5px">
+                <input type="text" id="link-wash-pre" placeholder="URL chatbot WASH pre-cap..." style="flex:1;padding:7px 10px;border:1px solid var(--bdr);border-radius:6px;font-size:11px;font-family:'DM Sans',sans-serif;background:var(--bg);outline:none;min-width:0">
+                <button onclick="openLink('link-wash-pre')" style="padding:7px 10px;background:var(--v);color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;flex-shrink:0">→</button>
+                <button onclick="copyLink('link-wash-pre')" style="padding:7px 10px;background:var(--bg);color:var(--ink2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer;flex-shrink:0">📋</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:600;color:#4A2080;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em">🟢 POST-Capacitación (Evaluación)</div>
+            <div onclick="document.getElementById('csv-wash-post').click()" style="border:1.5px dashed var(--bdr);border-radius:8px;padding:14px;text-align:center;cursor:pointer;font-size:12px;color:var(--ink3)">
+              📂 Subir CSV Post-WASH<input type="file" id="csv-wash-post" accept=".csv" style="display:none" onchange="handleCSV(this.files[0],'wash-post')">
+            </div>
+            <div id="csv-status-wash-post" style="font-size:11px;margin-top:4px"></div>
+            <div style="margin-top:8px">
+              <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);margin-bottom:4px">🔗 Link chatbot Post-WASH</div>
+              <div style="display:flex;gap:5px">
+                <input type="text" id="link-wash-post" placeholder="URL chatbot WASH post-cap..." style="flex:1;padding:7px 10px;border:1px solid var(--bdr);border-radius:6px;font-size:11px;font-family:'DM Sans',sans-serif;background:var(--bg);outline:none;min-width:0">
+                <button onclick="openLink('link-wash-post')" style="padding:7px 10px;background:#7B5EA7;color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;flex-shrink:0">→</button>
+                <button onclick="copyLink('link-wash-post')" style="padding:7px 10px;background:var(--bg);color:var(--ink2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer;flex-shrink:0">📋</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ENC 3 HOGAR -->
+      <div style="margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--bdr)">
+        <div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px">🏠 Encuesta 3 — Representantes del Hogar <span style="font-size:10px;color:var(--ink3);font-weight:400">· Mensual · Observación directa + encuesta + reportes · 280 representantes</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div style="font-size:10px;font-weight:600;color:var(--v-dk);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em">🔵 Línea Base</div>
+            <div onclick="document.getElementById('csv-hogar-lb').click()" style="border:1.5px dashed var(--bdr);border-radius:8px;padding:14px;text-align:center;cursor:pointer;font-size:12px;color:var(--ink3)">
+              📂 Subir CSV Hogar Línea Base<input type="file" id="csv-hogar-lb" accept=".csv" style="display:none" onchange="handleCSV(this.files[0],'hogar-lb')">
+            </div>
+            <div id="csv-status-hogar-lb" style="font-size:11px;margin-top:4px"></div>
+            <div style="margin-top:8px">
+              <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);margin-bottom:4px">🔗 Link chatbot Hogar LB</div>
+              <div style="display:flex;gap:5px">
+                <input type="text" id="link-hogar-lb" placeholder="URL chatbot Hogar LB..." style="flex:1;padding:7px 10px;border:1px solid var(--bdr);border-radius:6px;font-size:11px;font-family:'DM Sans',sans-serif;background:var(--bg);outline:none;min-width:0">
+                <button onclick="openLink('link-hogar-lb')" style="padding:7px 10px;background:var(--v);color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;flex-shrink:0">→</button>
+                <button onclick="copyLink('link-hogar-lb')" style="padding:7px 10px;background:var(--bg);color:var(--ink2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer;flex-shrink:0">📋</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:600;color:#4A2080;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em">🟢 Seguimiento Mensual</div>
+            <div onclick="document.getElementById('csv-hogar-seg').click()" style="border:1.5px dashed var(--bdr);border-radius:8px;padding:14px;text-align:center;cursor:pointer;font-size:12px;color:var(--ink3)">
+              📂 Subir CSV Hogar Seguimiento<input type="file" id="csv-hogar-seg" accept=".csv" style="display:none" onchange="handleCSV(this.files[0],'hogar-seg')">
+            </div>
+            <div id="csv-status-hogar-seg" style="font-size:11px;margin-top:4px"></div>
+            <div style="margin-top:8px">
+              <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);margin-bottom:4px">🔗 Link chatbot Hogar Seg.</div>
+              <div style="display:flex;gap:5px">
+                <input type="text" id="link-hogar-seg" placeholder="URL chatbot Hogar seguim..." style="flex:1;padding:7px 10px;border:1px solid var(--bdr);border-radius:6px;font-size:11px;font-family:'DM Sans',sans-serif;background:var(--bg);outline:none;min-width:0">
+                <button onclick="openLink('link-hogar-seg')" style="padding:7px 10px;background:#7B5EA7;color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;flex-shrink:0">→</button>
+                <button onclick="copyLink('link-hogar-seg')" style="padding:7px 10px;background:var(--bg);color:var(--ink2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer;flex-shrink:0">📋</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ENC 4 COMITÉ -->
+      <div style="margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--bdr)">
+        <div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px">🏛️ Encuesta 4 — Comité de Gobernanza <span style="font-size:10px;color:var(--ink3);font-weight:400">· Anual · Observación directa + encuesta + reportes · Solo miembros del comité</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div style="font-size:10px;font-weight:600;color:var(--v-dk);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em">🔵 Línea Base</div>
+            <div onclick="document.getElementById('csv-comite-lb').click()" style="border:1.5px dashed var(--bdr);border-radius:8px;padding:14px;text-align:center;cursor:pointer;font-size:12px;color:var(--ink3)">
+              📂 Subir CSV Comité Línea Base<input type="file" id="csv-comite-lb" accept=".csv" style="display:none" onchange="handleCSV(this.files[0],'comite-lb')">
+            </div>
+            <div id="csv-status-comite-lb" style="font-size:11px;margin-top:4px"></div>
+            <div style="margin-top:8px">
+              <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);margin-bottom:4px">🔗 Link chatbot Comité LB</div>
+              <div style="display:flex;gap:5px">
+                <input type="text" id="link-comite-lb" placeholder="URL chatbot Comité LB..." style="flex:1;padding:7px 10px;border:1px solid var(--bdr);border-radius:6px;font-size:11px;font-family:'DM Sans',sans-serif;background:var(--bg);outline:none;min-width:0">
+                <button onclick="openLink('link-comite-lb')" style="padding:7px 10px;background:var(--v);color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;flex-shrink:0">→</button>
+                <button onclick="copyLink('link-comite-lb')" style="padding:7px 10px;background:var(--bg);color:var(--ink2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer;flex-shrink:0">📋</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:600;color:#4A2080;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em">🟢 Evaluación Anual</div>
+            <div onclick="document.getElementById('csv-comite-eval').click()" style="border:1.5px dashed var(--bdr);border-radius:8px;padding:14px;text-align:center;cursor:pointer;font-size:12px;color:var(--ink3)">
+              📂 Subir CSV Comité Evaluación<input type="file" id="csv-comite-eval" accept=".csv" style="display:none" onchange="handleCSV(this.files[0],'comite-eval')">
+            </div>
+            <div id="csv-status-comite-eval" style="font-size:11px;margin-top:4px"></div>
+            <div style="margin-top:8px">
+              <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);margin-bottom:4px">🔗 Link chatbot Comité Eval.</div>
+              <div style="display:flex;gap:5px">
+                <input type="text" id="link-comite-eval" placeholder="URL chatbot Comité eval..." style="flex:1;padding:7px 10px;border:1px solid var(--bdr);border-radius:6px;font-size:11px;font-family:'DM Sans',sans-serif;background:var(--bg);outline:none;min-width:0">
+                <button onclick="openLink('link-comite-eval')" style="padding:7px 10px;background:#7B5EA7;color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;flex-shrink:0">→</button>
+                <button onclick="copyLink('link-comite-eval')" style="padding:7px 10px;background:var(--bg);color:var(--ink2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer;flex-shrink:0">📋</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ENC 5 PAZ -->
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px">☮️ Encuesta 5 — Construcción de Paz <span style="font-size:10px;color:var(--ink3);font-weight:400">· Inicio y cierre · Encuesta + observación directa · 121 familias</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div style="font-size:10px;font-weight:600;color:var(--v-dk);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em">🔵 Línea Base</div>
+            <div onclick="document.getElementById('csv-paz-lb').click()" style="border:1.5px dashed var(--bdr);border-radius:8px;padding:14px;text-align:center;cursor:pointer;font-size:12px;color:var(--ink3)">
+              📂 Subir CSV Paz Línea Base<input type="file" id="csv-paz-lb" accept=".csv" style="display:none" onchange="handleCSV(this.files[0],'paz-lb')">
+            </div>
+            <div id="csv-status-paz-lb" style="font-size:11px;color:var(--v);margin-top:4px"></div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:600;color:#4A2080;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em">🟢 Evaluación Final</div>
+            <div onclick="document.getElementById('csv-paz-final').click()" style="border:1.5px dashed var(--bdr);border-radius:8px;padding:14px;text-align:center;cursor:pointer;font-size:12px;color:var(--ink3)">
+              📂 Subir CSV Paz Final<input type="file" id="csv-paz-final" accept=".csv" style="display:none" onchange="handleCSV(this.files[0],'paz-final')">
+            </div>
+            <div id="csv-status-paz-final" style="font-size:11px;color:#4A2080;margin-top:4px"></div>
+            <div style="margin-top:8px">
+              <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);margin-bottom:4px">🔗 Link chatbot Paz Final</div>
+              <div style="display:flex;gap:5px">
+                <input type="text" id="link-paz-final" placeholder="URL chatbot Paz evaluaci&#243;n final..." style="flex:1;padding:7px 10px;border:1px solid var(--bdr);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;background:var(--bg);outline:none;min-width:0">
+                <button onclick="openLink('link-paz-final')" style="padding:7px 10px;background:#7B5EA7;color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer">&#8594;</button>
+                <button onclick="copyLink('link-paz-final')" style="padding:7px 10px;background:var(--bg);color:var(--ink2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer">&#128203;</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════ IMPACTO ══════════ -->
+<div class="page" id="page-impacto">
+  <div class="ph">
+    <div>
+      <h2>Resultados de impacto</h2>
+      <p>Comparación Línea Base → Evaluación Final · GG#2681765</p>
+    </div>
+  </div>
+
+  <!-- NOTE -->
+  <div style="margin-bottom:18px;padding:14px 18px;background:var(--am-lt);border:1px solid #C9B8E8;border-radius:var(--r);font-size:12px;color:#3D2060;line-height:1.7">
+    <strong>¿Qué medimos como impacto?</strong> La comparación entre los datos de la <strong>Línea Base</strong> (inicio del proyecto) y la <strong>Evaluación Final</strong> (cierre). Cargue ambos CSV en "Actualizar con CSV" para ver las diferencias. Los indicadores de impacto responden directamente a los 6 objetivos del GG#2681765.
+  </div>
+
+  <!-- IMPACT INDICATORS GRID -->
+  <div class="g3" style="margin-bottom:18px">
+
+    <div class="card" style="border-top:3px solid var(--ro)">
+      <div class="ch"><h3>🏥 IRA / EDA</h3><p>Objetivo 1 · Meta: reducir 10%</p></div>
+      <div class="cb">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="text-align:center">
+            <div style="font-size:10px;color:var(--ink3);margin-bottom:3px">LÍNEA BASE</div>
+            <div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--ro)" id="imp-ira-lb">—</div>
+            <div style="font-size:10px;color:var(--ink3)">familias con enfermedad</div>
+          </div>
+          <div style="font-size:20px;color:var(--ink3)">→</div>
+          <div style="text-align:center">
+            <div style="font-size:10px;color:var(--ink3);margin-bottom:3px">EVALUACIÓN FINAL</div>
+            <div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--v)" id="imp-ira-final">—</div>
+            <div style="font-size:10px;color:var(--ink3)">familias con enfermedad</div>
+          </div>
+        </div>
+        <div style="background:var(--bg);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--ink2)" id="imp-ira-msg">Cargue los CSV de Línea Base y Evaluación Final para ver el impacto.</div>
+        <div style="margin-top:8px;font-size:11px;color:var(--ink3)">Medición: % familias que reportan IRA o EDA · Enc.1 + Enc.3</div>
+      </div>
+    </div>
+
+    <div class="card" style="border-top:3px solid var(--v)">
+      <div class="ch"><h3>🚰 Acceso al agua</h3><p>Objetivo 2 · Meta: 446–600 personas</p></div>
+      <div class="cb">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="text-align:center">
+            <div style="font-size:10px;color:var(--ink3);margin-bottom:3px">LÍNEA BASE</div>
+            <div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--ro)" id="imp-agua-lb">—</div>
+            <div style="font-size:10px;color:var(--ink3)">% con agua mejorada</div>
+          </div>
+          <div style="font-size:20px;color:var(--ink3)">→</div>
+          <div style="text-align:center">
+            <div style="font-size:10px;color:var(--ink3);margin-bottom:3px">EVALUACIÓN FINAL</div>
+            <div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--v)" id="imp-agua-final">—</div>
+            <div style="font-size:10px;color:var(--ink3)">% con agua mejorada</div>
+          </div>
+        </div>
+        <div style="background:var(--bg);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--ink2)" id="imp-agua-msg">Cargue los CSV para ver el impacto en acceso al agua.</div>
+        <div style="margin-top:8px;font-size:11px;color:var(--ink3)">Medición: fuente = tubería/grifo del proyecto · Enc.1</div>
+      </div>
+    </div>
+
+    <div class="card" style="border-top:3px solid var(--az)">
+      <div class="ch"><h3>🧼 Higiene</h3><p>Objetivo 4 · WASH</p></div>
+      <div class="cb">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="text-align:center">
+            <div style="font-size:10px;color:var(--ink3);margin-bottom:3px">LÍNEA BASE</div>
+            <div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--ro)" id="imp-higiene-lb">—</div>
+            <div style="font-size:10px;color:var(--ink3)">% se lavan manos siempre</div>
+          </div>
+          <div style="font-size:20px;color:var(--ink3)">→</div>
+          <div style="text-align:center">
+            <div style="font-size:10px;color:var(--ink3);margin-bottom:3px">EVALUACIÓN FINAL</div>
+            <div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--v)" id="imp-higiene-final">—</div>
+            <div style="font-size:10px;color:var(--ink3)">% se lavan manos siempre</div>
+          </div>
+        </div>
+        <div style="background:var(--bg);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--ink2)" id="imp-higiene-msg">Cargue los CSV para ver cambios en prácticas de higiene.</div>
+        <div style="margin-top:8px;font-size:11px;color:var(--ink3)">Medición: lavado de manos siempre · Enc.1 + Enc.3</div>
+      </div>
+    </div>
+
+    <div class="card" style="border-top:3px solid var(--am)">
+      <div class="ch"><h3>⏱️ Tiempo búsqueda agua</h3><p>Objetivo 2 · Impacto en vida diaria</p></div>
+      <div class="cb">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="text-align:center">
+            <div style="font-size:10px;color:var(--ink3);margin-bottom:3px">LÍNEA BASE</div>
+            <div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--ro)" id="imp-tiempo-lb">—</div>
+            <div style="font-size:10px;color:var(--ink3)">% afectados mucho</div>
+          </div>
+          <div style="font-size:20px;color:var(--ink3)">→</div>
+          <div style="text-align:center">
+            <div style="font-size:10px;color:var(--ink3);margin-bottom:3px">EVALUACIÓN FINAL</div>
+            <div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--v)" id="imp-tiempo-final">—</div>
+            <div style="font-size:10px;color:var(--ink3)">% afectados mucho</div>
+          </div>
+        </div>
+        <div style="background:var(--bg);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--ink2)" id="imp-tiempo-msg">Cargue los CSV para ver cambios en impacto diario.</div>
+        <div style="margin-top:8px;font-size:11px;color:var(--ink3)">Medición: "afecta mucho" la búsqueda de agua · Enc.1</div>
+      </div>
+    </div>
+
+    <div class="card" style="border-top:3px solid var(--pu)">
+      <div class="ch"><h3>🤝 Convivencia y paz</h3><p>Objetivo 6 · Pilares de Paz Positiva</p></div>
+      <div class="cb">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="text-align:center">
+            <div style="font-size:10px;color:var(--ink3);margin-bottom:3px">LÍNEA BASE</div>
+            <div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--am)" id="imp-paz-lb">77%</div>
+            <div style="font-size:10px;color:var(--ink3)">relaciones buenas/muy buenas</div>
+          </div>
+          <div style="font-size:20px;color:var(--ink3)">→</div>
+          <div style="text-align:center">
+            <div style="font-size:10px;color:var(--ink3);margin-bottom:3px">EVALUACIÓN FINAL</div>
+            <div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--v)" id="imp-paz-final">—</div>
+            <div style="font-size:10px;color:var(--ink3)">relaciones buenas/muy buenas</div>
+          </div>
+        </div>
+        <div style="background:var(--bg);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--ink2)" id="imp-paz-msg">Línea base: 77% reporta buenas relaciones · 100% sin conflictos activos. Cargue CSV Final para ver cambios.</div>
+        <div style="margin-top:8px;font-size:11px;color:var(--ink3)">Medición: relaciones buenas o muy buenas · Enc.5</div>
+      </div>
+    </div>
+
+    <div class="card" style="border-top:3px solid #2E7D6B">
+      <div class="ch"><h3>🏛️ Gobernanza comunitaria</h3><p>Objetivo 5 · Comité funcional</p></div>
+      <div class="cb">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="text-align:center">
+            <div style="font-size:10px;color:var(--ink3);margin-bottom:3px">LÍNEA BASE</div>
+            <div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--am)" id="imp-gov-lb">—</div>
+            <div style="font-size:10px;color:var(--ink3)">comités activos</div>
+          </div>
+          <div style="font-size:20px;color:var(--ink3)">→</div>
+          <div style="text-align:center">
+            <div style="font-size:10px;color:var(--ink3);margin-bottom:3px">EVALUACIÓN FINAL</div>
+            <div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--v)" id="imp-gov-final">—</div>
+            <div style="font-size:10px;color:var(--ink3)">comités activos</div>
+          </div>
+        </div>
+        <div style="background:var(--bg);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--ink2)" id="imp-gov-msg">Meta: 2 comités funcionales. Cargue CSV del Comité para ver resultados.</div>
+        <div style="margin-top:8px;font-size:11px;color:var(--ink3)">Medición: comité activo · Enc.4</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- WHAT WE MEASURE TABLE -->
+  <div class="card">
+    <div class="ch"><h3>Marco de medición de impacto</h3><p>Indicadores, fuentes y método de cálculo</p></div>
+    <div style="overflow-x:auto"><table class="dt">
+      <thead><tr><th>Indicador de impacto</th><th>Objetivo</th><th>Cómo se mide</th><th>Fuente de datos</th><th>Meta</th></tr></thead>
+      <tbody>
+        <tr><td>Reducción de IRA/EDA</td><td>Obj. 1</td><td>% familias con enfermedades LB vs Final</td><td>Enc.1 + Enc.3</td><td>−10%</td></tr>
+        <tr><td>Acceso a agua mejorada</td><td>Obj. 2</td><td>% hogares con grifo/tubería como fuente principal</td><td>Enc.1</td><td>100% de 121 familias</td></tr>
+        <tr><td>Tiempo de búsqueda de agua</td><td>Obj. 2</td><td>% familias muy afectadas por el tiempo LB vs Final</td><td>Enc.1</td><td>Reducción significativa</td></tr>
+        <tr><td>Prácticas de lavado de manos</td><td>Obj. 4</td><td>% que se lava siempre con jabón LB vs Final</td><td>Enc.1 + Enc.3</td><td>Aumento significativo</td></tr>
+        <tr><td>Capacitación en WASH</td><td>Obj. 3 + 4</td><td>N° representantes que asistieron a capacitaciones</td><td>Enc.3</td><td>280 representantes</td></tr>
+        <tr><td>Relaciones comunitarias</td><td>Obj. 6</td><td>% relaciones buenas/muy buenas LB vs Final</td><td>Enc.5</td><td>Mantenimiento o mejora</td></tr>
+        <tr><td>Conflictos por agua</td><td>Obj. 6</td><td>N° conflictos reportados LB vs Final</td><td>Enc.5</td><td>Reducción o cero conflictos</td></tr>
+        <tr><td>Comité de gobernanza</td><td>Obj. 5</td><td>N° comités activos y funcionales</td><td>Enc.4</td><td>2 comités</td></tr>
+        <tr><td>Satisfacción con el agua</td><td>Obj. 2</td><td>Calificación promedio del servicio LB vs Final (1–5)</td><td>Enc.1</td><td>Aumento de al menos 1 punto</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+
+
+
+</main>
+
+<script>
+
+// ── CSV UPLOAD ──
+var csvData = [];
+var currentPhase = 'lb';
+['lb','final'].forEach(function(phase){
+  var dz = document.getElementById('csv-drop-' + phase);
+  if(!dz) return;
+  dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.style.borderColor='var(--v)'; dz.style.background='var(--v-lt)'; });
+  dz.addEventListener('dragleave', function(){ dz.style.borderColor=''; dz.style.background=''; });
+  dz.addEventListener('drop', function(e){
+    e.preventDefault(); dz.style.borderColor=''; dz.style.background='';
+    var file = e.dataTransfer.files[0];
+    if(file && file.name.endsWith('.csv')) handleCSV(file, phase);
+    else alert('Por favor seleccione un archivo .csv');
+  });
+});
+
+function handleCSV(file, phase) { phase = phase || 'lb';
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var text = e.target.result;
+    var lines = text.split('\n').filter(function(l){ return l.trim(); });
+    if(lines.length < 2) { alert('El archivo CSV está vacío o no tiene datos'); return; }
+    var headers = parseCSVLine(lines[0]);
+    csvData = [];
+    for(var i=1; i<lines.length; i++) {
+      var vals = parseCSVLine(lines[i]);
+      if(vals.length === 0) continue;
+      var row = {};
+      headers.forEach(function(h,j){ row[h.trim()] = (vals[j]||'').trim(); });
+      csvData.push(row);
+    }
+    var statusEl = document.getElementById('csv-status-' + phase) || document.getElementById('csv-status');
+    if(statusEl){ statusEl.style.display='block'; statusEl.style.padding='6px 0'; statusEl.textContent='✅ '+csvData.length+' registros · '+file.name; }
+    var mainStatus = document.getElementById('csv-status');
+    if(mainStatus){ mainStatus.style.display='block'; mainStatus.innerHTML='✅ <strong>'+csvData.length+' registros cargados</strong> — Fase: '+phase+' · '+new Date().toLocaleDateString('es'); }
+    currentPhase = phase;
+    updateDashboardWithCSV();
+  };
+  reader.readAsText(file);
+}
+
+function parseCSVLine(line) {
+  var result = [], cur = '', inQ = false;
+  for(var i=0; i<line.length; i++) {
+    var c = line[i];
+    if(c==='"'){ inQ=!inQ; }
+    else if(c===','&&!inQ){ result.push(cur); cur=''; }
+    else { cur+=c; }
+  }
+  result.push(cur);
+  return result;
+}
+
+function getF(row, candidates) {
+  var keys = Object.keys(row);
+  for(var i=0;i<candidates.length;i++){
+    var c = candidates[i].toLowerCase().trim();
+    for(var j=0;j<keys.length;j++){
+      var k = keys[j].toLowerCase().trim();
+      if(k === c || k.includes(c) || c.includes(k)){
+        return row[keys[j]]||'';
+      }
+    }
+  }
+  return '';
+}
+
+function countVals(arr, fn) {
+  var c={};
+  arr.forEach(function(r){
+    var v=fn(r)||'Sin respuesta';
+    // strip leading non-letter chars (emojis, spaces)
+    v=v.replace(/^[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]+/,'').trim()||v.trim()||'Sin respuesta';
+    c[v]=(c[v]||0)+1;
+  });
+  return Object.entries(c).sort(function(a,b){return b[1]-a[1];});
+}
+
+function pct(n,t){ return t>0?Math.round(n/t*100):0; }
+
+function updateDashboardWithCSV() {
+  if(!csvData.length) return;
+  var data = csvData;
+  var total = data.length;
+  // Debug: log first row fields
+  if(data[0]) console.log('CSV fields:', Object.keys(data[0]).join(', '));
+
+  // ── UPDATE METRIC CARDS ──
+  // Encuestas baseline card (mc.az)
+  var azCards = document.querySelectorAll('.mc.az');
+  if(azCards.length>0){
+    azCards[0].querySelector('.val').textContent = total;
+    azCards[0].querySelector('.sub').textContent = 'Enc.1 registros cargados';
+    var pill = azCards[0].querySelector('.pill');
+    if(pill) pill.textContent = 'Alcance: '+pct(total,121)+'% de 121 familias';
+  }
+
+  // Personas cubiertas - recalculate from household_size
+  var personas = data.reduce(function(s,r){
+    return s+(parseInt(getF(r,['Household Size','household size','household_size']))||0);
+  },0);
+
+  // ── UPDATE PROGRESS BARS ON DASHBOARD ──
+  var bars = document.querySelectorAll('.pr-bar');
+  var labels = document.querySelectorAll('.pr-lbl strong');
+
+  // Community breakdown
+  var chijchi = data.filter(function(r){
+    return getF(r,['Community','community','Comunidad']).toLowerCase().includes('chijchi');
+  });
+  var collpa = data.filter(function(r){
+    return getF(r,['Community','community','Comunidad']).toLowerCase().includes('collpa');
+  });
+
+  // Update progress bars if they exist
+  document.querySelectorAll('.pr-item').forEach(function(item){
+    var lbl = item.querySelector('.pr-lbl span');
+    var val = item.querySelector('.pr-lbl strong');
+    var bar = item.querySelector('.pr-bar');
+    if(!lbl||!val||!bar) return;
+    var text = lbl.textContent||lbl.innerText||'';
+    if(text.includes('Chijchi')){
+      val.textContent = chijchi.length+' familias';
+      bar.style.width = pct(chijchi.length,56)+'%';
+    } else if(text.includes('Collpa')){
+      val.textContent = collpa.length+' familias';
+      bar.style.width = pct(collpa.length,65)+'%';
+    } else if(text.includes('total') || text.includes('Cobertura')){
+      val.textContent = pct(total,121)+'%';
+      bar.style.width = Math.min(pct(total,121),100)+'%';
+    } else if(text.includes('baseline')){
+      val.textContent = pct(total,121)+'%';
+      bar.style.width = pct(total,121)+'%';
+    }
+  });
+
+  // ── REBUILD CHARTS ──
+  var COLORS = ['#2D3A8C','#4C5FD5','#C45E3E','#7B5EA7','#2E7D6B','#B03060','#E8A838'];
+
+  function rebuildChart(canvasId, type, labels, values, opts){
+    var canvas = document.getElementById(canvasId);
+    if(!canvas) return;
+    // Destroy existing chart
+    var existing = Chart.getChart(canvas);
+    if(existing) existing.destroy();
+    new Chart(canvas, {
+      type: type,
+      data: {
+        labels: labels,
+        datasets:[{
+          data: values,
+          backgroundColor: COLORS.slice(0,labels.length),
+          borderWidth: 0,
+          borderColor: type==='line'?'#2D3A8C':'transparent',
+          fill: type==='line',
+          tension: 0.4
+        }]
+      },
+      options: Object.assign({
+        responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:type==='doughnut'||type==='pie',position:'bottom',
+          labels:{font:{size:11},padding:10,usePointStyle:true}}}
+      }, opts||{})
+    });
+  }
+
+  // Water sources chart
+  var sources = countVals(data, function(r){
+    return getF(r,['Water sources','water sources','Fuente de agua','fuente']);
+  });
+  if(sources.length) rebuildChart('c-water','doughnut',
+    sources.slice(0,6).map(function(x){return x[0];}),
+    sources.slice(0,6).map(function(x){return x[1];}));
+
+  // WASH indicators chart
+  var hierve = data.filter(function(r){
+    var t=getF(r,['Water treatment','water treatment']).toLowerCase();
+    return t.includes('hiervo')||t.includes('hierv');
+  }).length;
+  var letrina = data.filter(function(r){
+    var s=getF(r,['Sanitation facility','sanitation facility']).toLowerCase();
+    return !s.includes('no')||s.includes('sí')||s.includes('si')||s.includes('baño')||s.includes('letrina');
+  }).length;
+  var jabon = data.filter(function(r){
+    var s=getF(r,['Soap or ash available for hand washing']).toLowerCase();
+    return s.includes('sí')||s.includes('si')||s.includes('siempre');
+  }).length;
+  var afecta = data.filter(function(r){
+    var i=getF(r,['Impact of water collection on daily life']).toLowerCase();
+    return i.includes('mucho')||i.includes('algo');
+  }).length;
+  var participa = data.filter(function(r){
+    var w=getF(r,['Willing to participate in water system care']).toLowerCase();
+    return w.includes('sí')||w.includes('si')||w.includes('gusto');
+  }).length;
+  if(total>0) rebuildChart('c-wash','bar',
+    ['Hierven el agua','Tienen letrina','Tienen jabón','Colecta afecta vida','Participarán'],
+    [pct(hierve,total),pct(letrina,total),pct(jabon,total),pct(afecta,total),pct(participa,total)],
+    {indexAxis:'y',plugins:{legend:{display:false}},
+     scales:{x:{max:100,ticks:{callback:function(v){return v+'%'},font:{size:10}}},
+             y:{ticks:{font:{size:10}}}}});
+
+  // Paz chart
+  var paz = countVals(data, function(r){
+    return getF(r,['Relaciones comunitarias','relaciones','convivencia']);
+  });
+  if(paz.length) rebuildChart('c-paz','doughnut',
+    paz.map(function(x){return x[0];}),
+    paz.map(function(x){return x[1];}));
+
+  // Treatment chart  
+  var trat = countVals(data, function(r){
+    return getF(r,['Water treatment','water treatment','Tratamiento']);
+  });
+  if(trat.length) rebuildChart('c-trat','doughnut',
+    trat.slice(0,5).map(function(x){return x[0];}),
+    trat.slice(0,5).map(function(x){return x[1];}));
+
+  // Water quality chart
+  var cal = countVals(data, function(r){
+    return getF(r,['Water quality perception','water quality perception','Calidad']);
+  });
+  if(cal.length) rebuildChart('c-calidad','doughnut',
+    cal.map(function(x){return x[0];}),
+    cal.map(function(x){return x[1];}));
+
+  // ── UPDATE LAST SURVEYS TABLE ──
+  var tbody = document.querySelector('#page-dashboard table.dt tbody');
+  if(tbody && data.length>0){
+    var recent = data.slice(-6).reverse();
+    tbody.innerHTML = recent.map(function(r){
+      var name = getF(r,['Name','nombre','Nombre']);
+      var com  = getF(r,['Community','community','Comunidad']);
+      var date = getF(r,['Survey Date','survey date','Fecha']);
+      var isC  = com.toLowerCase().includes('chijchi');
+      return '<tr><td class="nm">'+(name||'—')+'</td>'+
+        '<td><span class="comm '+(isC?'cc':'cb2')+'">'+(isC?'Chijchi Baja':'Collpa Belén')+'</span></td>'+
+        '<td><span class="pill p-az">Agua</span></td>'+
+        '<td>'+(date||'—')+'</td>'+
+        '<td><span class="st"><span class="dot dg"></span>Completa</span></td></tr>';
+    }).join('');
+  }
+
+  // ── UPDATE IMPACT PAGE ──
+  updateImpact(data, currentPhase);
+
+  // ── SHOW STATUS ──
+  var status = document.getElementById('csv-status');
+  if(status){
+    status.style.display='block';
+    status.innerHTML='✅ <strong>'+total+' registros cargados</strong> · '+
+      chijchi.length+' Chijchi Baja · '+collpa.length+' Collpa Belén · '+
+      'Alcance: '+pct(total,121)+'% de familias · '+
+      new Date().toLocaleString('es');
+  }
+
+  // ── NAVIGATE TO DASHBOARD AND RE-RENDER CHARTS ──
+  // Navigate first, then re-render after canvas is visible
+  var dashLink = document.querySelector('.sb-link');
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.sb-link').forEach(function(l){ l.classList.remove('active'); });
+  document.getElementById('page-dashboard').classList.add('active');
+  if(dashLink) dashLink.classList.add('active');
+
+  // Re-render charts after canvas is visible
+  setTimeout(function(){
+    var sources2 = countVals(data, function(r){ return getF(r,['Water sources','water sources','Fuente de agua']); });
+    if(sources2.length) rebuildChart('c-water','doughnut', sources2.slice(0,6).map(function(x){return x[0];}), sources2.slice(0,6).map(function(x){return x[1];}));
+
+    var trat2 = countVals(data, function(r){ return getF(r,['Water treatment','water treatment','Tratamiento']); });
+    if(trat2.length) rebuildChart('c-trat','doughnut', trat2.slice(0,5).map(function(x){return x[0];}), trat2.slice(0,5).map(function(x){return x[1];}));
+
+    var cal2 = countVals(data, function(r){ return getF(r,['Water quality perception','water quality perception','Calidad']); });
+    if(cal2.length) rebuildChart('c-calidad','doughnut', cal2.map(function(x){return x[0];}), cal2.map(function(x){return x[1];}));
+
+    if(total>0) rebuildChart('c-wash','bar',
+      ['Hierven el agua','Tienen letrina','Tienen jabón','Colecta afecta vida','Participarán'],
+      [pct(hierve,total),pct(letrina,total),pct(jabon,total),pct(afecta,total),pct(participa,total)],
+      {indexAxis:'y',plugins:{legend:{display:false}},
+       scales:{x:{max:100,ticks:{callback:function(v){return v+'%'},font:{size:10}}},
+               y:{ticks:{font:{size:10}}}}});
+  }, 150);
+}
+
+// ── LINK HELPERS ──
+function openLink(id) {
+  var url = document.getElementById(id) ? document.getElementById(id).value.trim() : '';
+  if(!url || url.startsWith('Pendiente') || url.startsWith('URL')) { alert('Por favor ingrese un link válido primero'); return; }
+  if(!url.startsWith('http')) url = 'https://' + url;
+  window.open(url, '_blank');
+}
+function copyLink(id) {
+  var url = document.getElementById(id) ? document.getElementById(id).value.trim() : '';
+  if(!url) { alert('No hay link para copiar'); return; }
+  if(navigator.clipboard) { navigator.clipboard.writeText(url).then(function(){ 
+    var btn = event.target; btn.textContent='✓'; setTimeout(function(){btn.textContent='📋';},1500);
+  }); } else { alert(url); }
+}
+
+// ── LANGUAGE ──
+var currentLang = 'es';
+var T = {
+  es: {
+    dash_title: 'Dashboard M&E',
+    dash_sub:   'Proyecto GG#2681765 · Chijchi Baja &amp; Collpa Belén · Línea Base',
+    sb_monitor: 'Monitoreo',
+    sb_datos:   'Datos',
+    nav_dash:   'Dashboard principal',
+    nav_enc:    'Encuestas',
+    nav_result: 'Resultados baseline',
+    nav_obj:    'Objetivos M&E',
+    nav_csv:    'Actualizar con CSV',
+    metric_ben: 'Beneficiarios meta',
+    metric_fam: 'Familias registradas',
+    metric_enc: 'Encuestas completadas',
+    metric_ira: 'Meta reducción IRA/EDA',
+  },
+  en: {
+    dash_title: 'M&E Dashboard',
+    dash_sub:   'Project GG#2681765 · Chijchi Baja &amp; Collpa Belén · Baseline',
+    sb_monitor: 'Monitoring',
+    sb_datos:   'Data',
+    nav_dash:   'Main Dashboard',
+    nav_enc:    'Surveys',
+    nav_result: 'Baseline Results',
+    nav_obj:    'M&E Objectives',
+    nav_csv:    'Update with CSV',
+    metric_ben: 'Target beneficiaries',
+    metric_fam: 'Registered families',
+    metric_enc: 'Completed surveys',
+    metric_ira: 'IRA/EDA reduction target',
+  }
+};
+
+function setLang(lang) {
+  currentLang = lang;
+  var t = T[lang];
+
+  // Toggle buttons
+  document.getElementById('lang-es').style.background = lang==='es' ? 'var(--v)' : 'var(--surf)';
+  document.getElementById('lang-es').style.color      = lang==='es' ? '#fff' : 'var(--ink2)';
+  document.getElementById('lang-en').style.background = lang==='en' ? 'var(--v)' : 'var(--surf)';
+  document.getElementById('lang-en').style.color      = lang==='en' ? '#fff' : 'var(--ink2)';
+
+  // Page title
+  var pgTitle = document.getElementById('pg-title');
+  var pgSub   = document.getElementById('pg-sub');
+  if(pgTitle) pgTitle.innerHTML = t.dash_title;
+  if(pgSub)   pgSub.innerHTML   = t.dash_sub;
+
+  // Sidebar section labels
+  var sbSections = document.querySelectorAll('.sb-section');
+  if(sbSections[0]) sbSections[0].textContent = t.sb_monitor;
+  if(sbSections[1]) sbSections[1].textContent = t.sb_datos;
+
+  // Sidebar nav items
+  var navItems = document.querySelectorAll('.sb-link');
+  var navKeys = ['nav_dash','nav_enc','nav_result','nav_obj','nav_csv'];
+  navItems.forEach(function(el, i){ if(navKeys[i] && t[navKeys[i]]) el.childNodes[el.childNodes.length-1].textContent = ' '+t[navKeys[i]]; });
+
+  // Metric card labels
+  var lbls = document.querySelectorAll('.mc .lbl');
+  var lblKeys = ['metric_ben','metric_fam','metric_enc','metric_ira'];
+  lbls.forEach(function(el, i){ if(lblKeys[i] && t[lblKeys[i]]) el.textContent = t[lblKeys[i]]; });
+
+  // Translate key static text elements
+  translateStaticText(lang);
+}
+
+function translateStaticText(lang) {
+  // Objectives page note
+  var note = document.querySelector('#page-objetivos > div:first-of-type');
+  if(note && lang==='en') {
+    note.innerHTML = '<strong>Methodological note for partners:</strong> The GG#2681765 M&E plan works with <strong>121 registered families / 446 people</strong> in Chijchi Baja (Romerhuma) and Collpa Belén. Direct measurement is done with the 121 household representatives, representing <strong>446 people</strong> — <strong>74%</strong> of Rotary&#39;s target of 600 (which includes nearby Corocoro communities). Results are reported as coverage percentage of the total target population.';
+  } else if(note && lang==='es') {
+    note.innerHTML = '<strong>Nota metodológica para socios:</strong> El plan M&E del GG#2681765 trabaja con <strong>121 familias registradas / 446 personas</strong> en Chijchi Baja (Romerhuma) y Collpa Belén. La medición directa se realiza con los <strong>121 representantes de hogar</strong>, que representan a <strong>446 personas</strong> — el <strong>74%</strong> de la meta de 600 personas establecida por Rotary (que incluye comunidades cercanas a Corocoro). Los resultados se reportan en porcentaje de cobertura sobre la población total meta.';
+  }
+
+  // Indicators table header
+  var tblHeaders = document.querySelectorAll('#page-objetivos table th');
+  if(tblHeaders.length >= 5) {
+    if(lang==='en') {
+      tblHeaders[0].textContent='Indicator'; tblHeaders[1].textContent='Target';
+      tblHeaders[2].textContent='Method'; tblHeaders[3].textContent='Schedule'; tblHeaders[4].textContent='Tool';
+    } else {
+      tblHeaders[0].textContent='Indicador'; tblHeaders[1].textContent='Meta';
+      tblHeaders[2].textContent='Método'; tblHeaders[3].textContent='Frecuencia'; tblHeaders[4].textContent='Instrumento';
+    }
+  }
+}
+
+// ── IMPACT UPDATE ──
+var lbData = [], finalData = [];
+function updateImpact(data, phase) {
+  if(phase === 'lb' || phase === 'lb') lbData = data;
+  if(phase === 'final') finalData = data;
+
+  function calcPct(arr, fn) {
+    if(!arr.length) return '—';
+    var n = arr.filter(fn).length;
+    return Math.round(n/arr.length*100) + '%';
+  }
+  function setImp(id, lb, final, goodIsLow) {
+    var el = document.getElementById(id+'-lb');
+    var ef = document.getElementById(id+'-final');
+    var em = document.getElementById(id+'-msg');
+    if(el && lb !== '—') el.textContent = lb;
+    if(ef && final !== '—') ef.textContent = final;
+    if(em && lb !== '—' && final !== '—') {
+      var lbN = parseInt(lb), fiN = parseInt(final);
+      var improved = goodIsLow ? fiN < lbN : fiN > lbN;
+      var diff = goodIsLow ? lbN - fiN : fiN - lbN;
+      em.style.background = improved ? 'var(--v-lt)' : 'var(--ro-lt)';
+      em.style.color = improved ? 'var(--v-dk)' : 'var(--ro)';
+      em.textContent = improved
+        ? '✅ Mejora de ' + Math.abs(diff) + ' puntos porcentuales'
+        : (diff === 0 ? '➡️ Sin cambio' : '⚠️ Empeoró ' + Math.abs(diff) + ' puntos — revisar');
+    }
+  }
+
+  // IRA/EDA
+  var iraLB = calcPct(lbData, function(r){
+    var v = getF(r,['Family illness due to water (3 months)','family illness']).toLowerCase();
+    return v.includes('sí')||v.includes('si');
+  });
+  var iraFinal = calcPct(finalData, function(r){
+    var v = getF(r,['Family illness due to water (3 months)','family illness']).toLowerCase();
+    return v.includes('sí')||v.includes('si');
+  });
+  setImp('imp-ira', iraLB, iraFinal, true);
+
+  // Agua mejorada
+  var aguaLB = calcPct(lbData, function(r){
+    var v = getF(r,['Water sources','water sources']).toLowerCase();
+    return v.includes('proyecto')||v.includes('grifo')||v.includes('tuber');
+  });
+  var aguaFinal = calcPct(finalData, function(r){
+    var v = getF(r,['Water sources','water sources']).toLowerCase();
+    return v.includes('proyecto')||v.includes('grifo')||v.includes('tuber');
+  });
+  setImp('imp-agua', aguaLB, aguaFinal, false);
+
+  // Higiene
+  var higLB = calcPct(lbData, function(r){
+    return getF(r,['Hand washing frequency']).toLowerCase().includes('siempre');
+  });
+  var higFinal = calcPct(finalData, function(r){
+    return getF(r,['Hand washing frequency']).toLowerCase().includes('siempre');
+  });
+  setImp('imp-higiene', higLB, higFinal, false);
+
+  // Tiempo impacto
+  var tiempoLB = calcPct(lbData, function(r){
+    return getF(r,['Impact of water collection on daily life']).toLowerCase().includes('mucho');
+  });
+  var tiempoFinal = calcPct(finalData, function(r){
+    return getF(r,['Impact of water collection on daily life']).toLowerCase().includes('mucho');
+  });
+  setImp('imp-tiempo', tiempoLB, tiempoFinal, true);
+
+  // Paz
+  var pazLB = calcPct(lbData, function(r){
+    var v = getF(r,['relaciones','convivencia','paz']).toLowerCase();
+    return v.includes('muy buenas')||v.includes('buenas');
+  });
+  var pazFinal = calcPct(finalData, function(r){
+    var v = getF(r,['relaciones','convivencia','paz']).toLowerCase();
+    return v.includes('muy buenas')||v.includes('buenas');
+  });
+  if(pazLB !== '—') document.getElementById('imp-paz-lb') && (document.getElementById('imp-paz-lb').textContent = pazLB === '—' ? '77%' : pazLB);
+  setImp('imp-paz', '77%', pazFinal, false);
+}
+
+// ── NAV ──
+function nav(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sb-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+
+}
+
+// ── TABS ──
+function tab(id, btn) {
+  btn.closest('.page').querySelectorAll('.tp').forEach(t => t.classList.remove('active'));
+  btn.closest('.page').querySelectorAll('.tb').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── BENEFICIARIOS DATA ──
+const COLLPA = [
+  ["ADOLFO VALERIANO","2372248 LP",2,3,0],["ABDON ZARZURI LLAPACU","2343941 LP",2,2,2],
+  ["ALEJANDRINA SARZURI DE AGUILAR","088983 LP",1,2,0],["PEDRO LIMACHI SIRPA","2092132",3,3,2],
+  ["ANA MARIA CONDORI DE CHOQUE","2549496",1,5,0],["JUSTINA CONDORI DE MAMANI","4835106",1,1,0],
+  ["CIRIA SARZURI MOLLO","3468427",1,2,0],["JORGE LUIS LLAPACO SARZURI","6915710",1,1,2],
+  ["SABINO RAIMUNDO LIMACHI C.","2344771",1,1,1],["RUTH ADELA LIMACHI CONDORI","2454948",1,2,1],
+  ["SOTERA E. ZARSURI DAZA","6255601",2,1,1],["EVARISTA SARZURI DAZA","2092321",0,2,1],
+  ["CONSTANCIA J. SARZURI DAZA","2655602",2,1,1],["BETHSABIA D. VICENTE FLORES","42547792",1,1,1],
+  ["ROMALDA LIMACHI MAMANI","6799104",2,1,1],["COSME SARZURI MOLLO","12998877",3,2,0],
+  ["PEDRO CASIMIRO MOLLO LIMACHI","4806931",2,1,0],["CONCEPCION VICENTE QUISPE","2399485",1,3,1],
+  ["RUBEN SERGIO LIMACHI CONDORI","2643618",1,1,1],["FELIX RODRIGUEZ APAZA","3340831",2,1,1],
+  ["JHONNY MAMANI LIMACHI","9891923",1,1,2],["JOSE A. ZARSURI TARQUI","6845078",1,3,0],
+  ["MAX MANUEL ZARSURI RODRIGUEZ","12701542",2,2,1],["NATALIO LLAPACU LIMACHI","2278074",3,1,0],
+  ["SORIA ROSALIA LLAPACU VICENTE","6181978",3,0,1],["SEGUNDINA VICENTE DE MAMANI","2095983",0,1,1],
+  ["EUGENIA SILVIA LLAPACU ZARSURI","9214917",0,1,0],["ABRAM LIMACHI MAMANI","3406326",0,2,0],
+  ["REYNA LIMACHI PINTO","6915748",1,0,1],["ROSY LIMACHI PINTO","6915752",1,0,1],
+  ["NICOLASA MAMANI DE LIMACHI","2262340",1,0,1],["ELEODORO LLAPACU VICENTE","2095904",0,0,0],
+  ["MOISES CONDORI ZARSURI","2092097",3,1,0],["DAVID CONDORI PARI","10936497",0,1,2],
+  ["GUSTAVO CONDORI PARI","10912648",0,0,0],["EULALIA PARI CHOQUE","2567476",0,0,0],
+  ["PEDRO LLAPACO VICENTE","2092098",2,2,0],["RENE LLAPACO ALBERTO","6012162",0,2,2],
+  ["VENANCIA ALBERTO DE LLAPACO","2558336",1,2,0],["ANNA AGUILAR VDA. DE ZARSURI","2059595",0,0,0],
+  ["AGAPITO VICENTE TICONA","428034",0,0,0],["PAULINA LLAPACO VILLA","2092031",1,0,0],
+  ["CLEMENTINA CHOQUE DE LIMACHI","2314130",0,5,0],["ROBERTO LIMACHI SIRPA","2595229",0,4,0],
+  ["SONIA CHOQUE CHOQUE","6148137",1,0,0],["MARÍA LIMACHI CHOQUE","8419390",1,1,1],
+  ["CENTRO ARTESANAL COLLPA BELEN","—",0,0,0],["DANIEL CHOQUE LLAPACO","485782",0,0,0],
+  ["YOVANA LIMACHI CHOQUE","8427746",0,1,1],["GUILLERMO LLAPACO VICENTE","2185785",4,2,0],
+  ["DAMIAN ALBERTO DANA","2555200",2,3,0],["EFRAIN A. LIMACHI LLOPECED","4245641",2,1,0],
+  ["ISABEL D. LIMACHI CONDORI","6928842",2,0,3],["SAUL O. LIMACHI CONDORI","9083260",1,1,1],
+  ["JUSTINA LLOPACA LLOPACA","2275218",1,1,0],["MARTHA MOLLO PALACIOS","2595270",0,1,0],
+  ["EDUARDA N. CONDORI CHOQUE","4245644",0,3,0],["SONIA VICENTE HUANCO","6040881",3,2,0],
+  ["DAVID TARQUI AYALA","2151243",2,1,0],["EMILIANA SARZURI DAZA","2680137",1,2,0],
+  ["EDUARDO SARZURI","—",0,0,0],["CLAUDIO LIMACHI","—",0,0,0],
+  ["ADOLFO O MARITZA VALERIANO","—",0,0,0],["NICOLASA MAMANI","—",0,0,0],["TORIBA LIMACHI","—",0,0,0]
+];
+const CHIJCHI = [
+  ["JOSE LIMACHI MALDONADO","2097432",2,2,5],["ADELA FUENTES LIMACHI","2480955",0,0,0],
+  ["WALTER MARCOS LIMACHI VILLA","3413508",2,2,4],["ELEODORA LIMACHI LLAPACO","10039854",0,0,0],
+  ["TERESA LIMACHI QUISPE","2645034",2,5,2],["MARIA LIMACHI MOLLO","2692808",1,1,2],
+  ["ROBERTO CESAR LIMACHI ZARSURI","2095963",1,2,1],["MERY LIMACHI LIMACHI","3403212",1,2,6],
+  ["RUDY LUIS ALBERTO YAMPA","—",1,2,6],["FAUSTINO LIMACHI ALBERTO","2185736",1,1,1],
+  ["VENANCIA LIMACHI AYALA","9114290",1,2,3],["ALBIN LIMACHI CHOQUE","6805687",0,0,0],
+  ["PABLO LLAPACO MAMANI","6184073",1,1,7],["PEDRO LLAPACO CHOQUEHUANCA","2272732",1,0,9],
+  ["GERMAN LLAPACO LIMACHI","—",1,0,4],["GUILLERMO LLAPACO CONDORI","2096152",0,0,0],
+  ["AIDA P. LLAPACO LIMACHI","—",0,0,0],["WILFREDO LLAPACO MAMANI","2139783",1,0,2],
+  ["GLADYS LLAPACO MAMANI","10008907",0,1,0],["SEDE DE LA COMUNIDAD","—",0,0,0],
+  ["RAUL LLAPACO CHOQUEHUANCA","—",0,0,0],["LEONORA LIMACHI","—",0,0,0],
+  ["LIDIA LLAPACO","—",0,0,0],["RAFAELA RENGIFO DE COLQUE","3366376",1,4,0],
+  ["ESTEBAN COLQUE MAMANI","3318041",1,1,3],["MAXIMO RENFIJO GUARACHI","2094364",2,3,0],
+  ["CONSTACIA COLQUE GUARACHI","5928190",1,1,0],["EULOGIO MAMANI COLQUE","6928188",3,2,3],
+  ["FELIX COLQUE GUARACHI","2485688",3,2,3],["LEANDRA MAMANI CONDORI","2343105",1,2,0],
+  ["TOMAS CONDORI COAQUIRA","6766857",2,3,0],["SEGUNDINO MAMANI","6005261",4,8,0],
+  ["POLICARPIO LAURA CONDORI","2097484",2,4,0],["CRISTINA COLQUE","2641897",1,1,0],
+  ["RENE COLQUE","5990394",2,2,0],["MARGARITA RENJIFO DE COLQUE","3400094",1,1,0],
+  ["RAMONA QUISPE DE COLQUE","2641895",0,2,0],["NATIVIDAD LAURA ALAVI","2641915",1,1,0],
+  ["FAUSTO GUTIERREZ LAURA","3400404",1,1,0],["BERNA MAMANI DE LAURA","2096273",2,2,0],
+  ["FIDEL MAMANI ROJAS","428871",2,2,0],["DAMIAN MAMANI CONDORI","2630656",2,2,0],
+  ["ESTANISLAO QUINONES HERRERA","6189267",3,7,0],["MARIA MAMANI","—",0,1,0],
+  ["CIRIL MALDERNA ROJAS","2551258",1,1,0],["PAULINA AYALA DE RENFIJO","2641850",1,1,0],
+  ["RICARDO AYALA GUARACHI","2675603",1,1,0],["MAXIMA AYALA GUARACHI","3400386",2,1,2],
+  ["CELESTINO AYALA","6157464",3,5,0],["LEONARDO RENJIFO MAMANI","428877",1,0,0],
+  ["ALEXANDER RENJIFO AYALA","6853995",1,1,1],["SANTOS TIÑINI","3790008",1,4,0],
+  ["CLAUDIO TIÑINI MORALES","2663902",2,1,0],["CLAUDINA RENJIFO DE MAMANI","2094043",2,3,0],
+  ["GREGORIA AYALA","—",4,2,0]
+];
+
+function buildTbl(data, id) { if(!document.getElementById(id)) return;
+  const tb = document.getElementById(id);
+  data.forEach((r, i) => {
+    const tot = (r[2]||0)+(r[3]||0)+(r[4]||0);
+    tb.innerHTML += `<tr>
+      <td class="id-c">${i+1}</td>
+      <td class="nm">${r[0]}</td>
+      <td class="id-c">${r[1]}</td>
+      <td style="text-align:center">${r[2]||'—'}</td>
+      <td style="text-align:center">${r[3]||'—'}</td>
+      <td style="text-align:center">${r[4]||'—'}</td>
+      <td><span class="st"><span class="dot ${tot>0?'dg':'dgr'}"></span>${tot>0?tot+' pers.':'—'}</span></td>
+    </tr>`;
+  });
+}
+// beneficiarios removed
+// beneficiarios removed
+
+// ── CHARTS ──
+window.addEventListener('load', () => {
+  // Load saved Airtable config
+  
+
+  document.getElementById('c-water') && new Chart(document.getElementById('c-water'), {
+    type: 'doughnut',
+    data: { labels: ['Pozo sin protección','Río o arroyo','Lluvia','Otro','Manantial'], datasets: [{ data: [7,5,4,2,1], backgroundColor: ['#2D3A8C','#4C5FD5','#C45E3E','#7B5EA7','#2E7D6B'], borderWidth: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
+  });
+
+  document.getElementById('c-wash') && new Chart(document.getElementById('c-wash'), {
+    type: 'bar',
+    data: {
+      labels: ['Hierven el agua','Colecta afecta vida','Tienen letrina','Tienen jabón','Participarán mantenimiento'],
+      datasets: [{ data: [60,70,55,95,90], backgroundColor: ['#2D3A8C','#C45E3E','#7B5EA7','#2E7D6B','#4C5FD5'], borderWidth: 0 }]
+    },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { max: 100, ticks: { callback: v => v + '%', font: { size: 10 } } }, y: { ticks: { font: { size: 10 } } } }
+    }
+  });
+
+  document.getElementById('c-paz') && new Chart(document.getElementById('c-paz'), {
+    type: 'doughnut',
+    data: { labels: ['Muy buenas','Buenas','Regulares'], datasets: [{ data: [4,6,3], backgroundColor: ['#2D3A8C','#4C5FD5','#C45E3E'], borderWidth: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
+  });
+
+  document.getElementById('c-trat') && new Chart(document.getElementById('c-trat'), {
+    type: 'doughnut',
+    data: { labels: ['Hierven siempre','Hierven a veces','No tratan','No sabe'], datasets: [{ data: [9,3,2,1], backgroundColor: ['#2D3A8C','#4C5FD5','#C45E3E','#7B5EA7'], borderWidth: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
+  });
+
+  document.getElementById('c-calidad') && new Chart(document.getElementById('c-calidad'), {
+    type: 'doughnut',
+    data: { labels: ['Limpia y segura','Más o menos','Claramente sucia','No sabe'], datasets: [{ data: [4,8,1,2], backgroundColor: ['#2D3A8C','#4C5FD5','#C45E3E','#7B5EA7'], borderWidth: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
+  });
+});
+</script>
+</body>
+</html>
