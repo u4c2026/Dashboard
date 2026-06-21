@@ -1101,6 +1101,13 @@ function handleCSV(file, phase) { phase = phase || 'lb';
     var mainStatus = document.getElementById('csv-status');
     if(mainStatus){ mainStatus.style.display='block'; mainStatus.innerHTML='✅ <strong>'+csvData.length+' registros cargados</strong> — Fase: '+phase+' · '+new Date().toLocaleDateString('es'); }
     currentPhase = phase;
+    // Save to localStorage so data persists on refresh
+    try {
+      localStorage.setItem('gg2681765_csv_' + phase, JSON.stringify(csvData));
+      localStorage.setItem('gg2681765_phase', phase);
+      localStorage.setItem('gg2681765_filename_' + phase, file.name);
+      localStorage.setItem('gg2681765_loaded_at_' + phase, new Date().toLocaleString('es'));
+    } catch(e) { console.warn('localStorage not available'); }
     updateDashboardWithCSV();
   };
   reader.readAsText(file);
@@ -1347,6 +1354,24 @@ function updateDashboardWithCSV() {
        scales:{x:{max:100,ticks:{callback:function(v){return v+'%'},font:{size:10}}},
                y:{ticks:{font:{size:10}}}}});
   }, 150);
+}
+
+// ── CLEAR DATA ──
+function clearAllData() {
+  if(!confirm('¿Limpiar todos los datos cargados? Volverá a los valores originales.')) return;
+  try {
+    var phases = ['lb','final','wash-pre','wash-post','hogar-lb','hogar-seg','comite-lb','comite-eval','paz-lb','paz-final'];
+    phases.forEach(function(p){
+      localStorage.removeItem('gg2681765_csv_' + p);
+      localStorage.removeItem('gg2681765_filename_' + p);
+      localStorage.removeItem('gg2681765_loaded_at_' + p);
+    });
+    localStorage.removeItem('gg2681765_phase');
+  } catch(e){}
+  csvData = []; currentPhase = 'lb';
+  var mainStatus = document.getElementById('csv-status');
+  if(mainStatus){ mainStatus.style.display='none'; mainStatus.innerHTML=''; }
+  location.reload();
 }
 
 // ── LINK HELPERS ──
@@ -1641,6 +1666,47 @@ function buildTbl(data, id) { if(!document.getElementById(id)) return;
 
 // ── CHARTS ──
 window.addEventListener('load', () => {
+  // ── RESTORE CSV DATA FROM LOCALSTORAGE ──
+  try {
+    var phases = ['lb','final','wash-pre','wash-post','hogar-lb','hogar-seg','comite-lb','comite-eval','paz-lb','paz-final'];
+    var restored = false;
+    phases.forEach(function(phase){
+      var saved = localStorage.getItem('gg2681765_csv_' + phase);
+      if(saved) {
+        var parsed = JSON.parse(saved);
+        if(parsed && parsed.length > 0) {
+          csvData = parsed;
+          currentPhase = phase;
+          restored = true;
+          // Update status labels
+          var fname = localStorage.getItem('gg2681765_filename_' + phase) || 'archivo guardado';
+          var loadedAt = localStorage.getItem('gg2681765_loaded_at_' + phase) || '';
+          var statusEl = document.getElementById('csv-status-' + phase);
+          if(statusEl){ statusEl.style.display='block'; statusEl.style.padding='6px 0'; statusEl.textContent='✅ '+parsed.length+' registros · '+fname; }
+          // Show clear button in sidebar footer
+        }
+      }
+    });
+    if(restored) {
+      // Use the last loaded phase data for dashboard
+      var lastPhase = localStorage.getItem('gg2681765_phase') || 'lb';
+      var lastData = localStorage.getItem('gg2681765_csv_' + lastPhase);
+      if(lastData) {
+        csvData = JSON.parse(lastData);
+        currentPhase = lastPhase;
+        var mainStatus = document.getElementById('csv-status');
+        if(mainStatus){
+          var fname = localStorage.getItem('gg2681765_filename_' + lastPhase) || 'archivo';
+          var loadedAt = localStorage.getItem('gg2681765_loaded_at_' + lastPhase) || '';
+          mainStatus.style.display='block';
+          mainStatus.innerHTML='✅ <strong>Datos restaurados</strong> · '+csvData.length+' registros · '+fname+' · cargado: '+loadedAt+
+            ' <button onclick="clearAllData()" style="margin-left:10px;padding:3px 10px;background:var(--ro-lt);color:var(--ro);border:1px solid var(--ro);border-radius:5px;font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">✕ Limpiar todo</button>';
+        }
+        setTimeout(function(){ updateDashboardWithCSV(); }, 300);
+      }
+    }
+  } catch(e) { console.warn('Could not restore from localStorage:', e); }
+
   // Load saved Airtable config
   
 
